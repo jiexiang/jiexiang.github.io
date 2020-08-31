@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on 天府码农博客</title>
+    <link>https://jiexiang.github.com/post/</link>
+    <description>天府码农博客 (Posts)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 29 Aug 2020 18:41:36 +0800</lastBuildDate>
+    
+    <atom:link href="https://jiexiang.github.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Docker入门</title>
+      <link>https://jiexiang.github.com/post/docker%E5%85%A5%E9%97%A8/</link>
+      <pubDate>Sat, 29 Aug 2020 18:41:36 +0800</pubDate>
+      
+      <guid>https://jiexiang.github.com/post/docker%E5%85%A5%E9%97%A8/</guid>
+      <description>&lt;h2 id=&#34;名词解释&#34;&gt;名词解释&lt;/h2&gt;
+&lt;h3 id=&#34;镜像image&#34;&gt;镜像（image）&lt;/h3&gt;
+&lt;p&gt;镜像就是一个模板，可以通过这个模板创建多个容器。镜像是一种轻量级，可执行的独立软件包，用来打包软件运行环境和基于运行环境开发的软件，它包含运行某个软件所需的所有内容：代码、运行时、库、环境变量和配置文件等。&lt;/p&gt;
+&lt;h3 id=&#34;容器container&#34;&gt;容器（container）&lt;/h3&gt;
+&lt;p&gt;利用容器可以独立运行一个或者一组应用。容器通过镜像来创建。&lt;/p&gt;
+&lt;h3 id=&#34;仓库repository&#34;&gt;仓库（repository）&lt;/h3&gt;
+&lt;p&gt;存放镜像的地方。可以在官方&lt;a href=&#34;https://hub.docker.com/&#34;&gt;Dockhub&lt;/a&gt;中搜索到许多镜像，并查看对应的版本。阿里云等云服务商也提供了镜像存放服务。&lt;/p&gt;
+&lt;h2 id=&#34;系统环境查看&#34;&gt;系统环境查看&lt;/h2&gt;
+&lt;p&gt;这里是在&lt;code&gt;centos&lt;/code&gt;上进行 docker 的环境搭建。如果在 windows 或者 macos 上安装，可以直接下载一键安装的程序。&lt;/p&gt;
+&lt;p&gt;查看系统内核：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;uname -r
+3.10.0-1062.18.1.el7.x86_64
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看系统版本：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;cat /etc/os-release
+&lt;span style=&#34;color:#033&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;CentOS Linux&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;VERSION&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;7 (Core)&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;ID&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;centos&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;ID_LIKE&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;rhel fedora&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;VERSION_ID&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;7&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;PRETTY_NAME&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;CentOS Linux 7 (Core)&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;ANSI_COLOR&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;0;31&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;CPE_NAME&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;cpe:/o:centos:centos:7&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;HOME_URL&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;https://www.centos.org/&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;BUG_REPORT_URL&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;https://bugs.centos.org/&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#033&#34;&gt;CENTOS_MANTISBT_PROJECT&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;CentOS-7&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;CENTOS_MANTISBT_PROJECT_VERSION&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;7&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;REDHAT_SUPPORT_PRODUCT&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;centos&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;REDHAT_SUPPORT_PRODUCT_VERSION&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;7&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;在-centos-环境上安装-docker&#34;&gt;在 centos 环境上安装 docker&lt;/h2&gt;
+&lt;p&gt;下面根据 docker 官方文档，开始安装。&lt;/p&gt;
+&lt;p&gt;首先需要卸载旧版本，如果以前没有安装过，这一步可以省略：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;sudo yum remove docker &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-client &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-client-latest &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-common &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-latest &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-latest-logrotate &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-logrotate &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;                  docker-engine
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;安装一些工具：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;sudo yum install -y yum-utils
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;设置镜像地址，可以设置官方的，但会比较慢。推荐使用阿里云的，速度更快一些：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 官方&lt;/span&gt;
+sudo yum-config-manager &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    --add-repo &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    https://download.docker.com/linux/centos/docker-ce.repo
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 阿里云&lt;/span&gt;
+sudo yum-config-manager &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    --add-repo &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;更新 centos 软件包索引：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;yum makecache fast
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;安装docker docker-ce（社区版本），ee 为企业版本&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;sudo yum install docker-ce docker-ce-cli containerd.io
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;启动 docker：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;systemctl start docker
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看是否启动成功：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker version
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;运行 hello-world：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker run hello-world
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看所有镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker images
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;配置镜像加速器，国内很多云服务都提供了镜像加速器：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;网易：https://hub-mirror.c.163.com&lt;/li&gt;
+&lt;li&gt;百度：https://mirror.baidubce.com&lt;/li&gt;
+&lt;li&gt;阿里云：需要登录自己帐号密码去获取&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 新建目录&lt;/span&gt;
+sudo mkdir -p /etc/docker
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 新增配置文件&lt;/span&gt;
+sudo tee /etc/docker/daemon.json &lt;span style=&#34;color:#c30&#34;&gt;&amp;lt;&amp;lt;-&amp;#39;EOF&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;{
+&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;  &amp;#34;registry-mirrors&amp;#34;: [&amp;#34;加速器地址&amp;#34;]
+&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;}
+&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;EOF&lt;/span&gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 重启 docker&lt;/span&gt;
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;卸载（虽然说一般不用不到），docker 默认工作路径是在：&lt;code&gt;/var/lib/docker&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 卸载依赖&lt;/span&gt;
+sudo yum remove docker-ce docker-ce-cli containerd.io
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 卸载资源&lt;/span&gt;
+sudo rm -rf /var/lib/docker
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;docker-常用命令&#34;&gt;docker 常用命令&lt;/h2&gt;
+&lt;h3 id=&#34;帮助命令&#34;&gt;帮助命令&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 版本信息&lt;/span&gt;
+docker version
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 详细信息&lt;/span&gt;
+docker info
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 帮助文档&lt;/span&gt;
+docker &amp;lt;命令&amp;gt; --help
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;镜像命令&#34;&gt;镜像命令&lt;/h3&gt;
+&lt;p&gt;查看所有本地主机上的镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@VM-0-6-centos /&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# docker images&lt;/span&gt;
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello-world         latest              bf756fb1ae65        &lt;span style=&#34;color:#f60&#34;&gt;7&lt;/span&gt; months ago        13.3kB
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 列出所有镜像&lt;/span&gt;
+-a, --all 
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 只显示镜像id&lt;/span&gt;
+-q, --quiet
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;搜索镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker search mysql
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 可选项，过滤&lt;/span&gt;
+--filter
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 搜索 mysql 镜像，stars 3000 以上的&lt;/span&gt;
+docker search mysql --filter&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;STARS&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#f60&#34;&gt;3000&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;下载镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 下载 mysql 镜像&lt;/span&gt;
+&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@VM-0-6-centos /&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# docker pull mysql&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 如果不指定版本，默认以最新版本&lt;/span&gt;
+Using default tag: latest
+latest: Pulling from library/mysql
+bf5952930446: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+8254623a9871: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+938e3e06dac4: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+ea28ebf28884: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+f3cef38785c2: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+894f9792565a: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+1d8a57523420: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+6c676912929f: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+ff39fdb566b4: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+fff872988aba: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+4d34e365ae68: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+7886ee20621e: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 签名&lt;/span&gt;
+Digest: sha256:c358e72e100ab493a0304bda35e6f239db2ec8c9bb836d8a427ac34307d074ed
+Status: Downloaded newer image &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;for&lt;/span&gt; mysql:latest
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 真实地址&lt;/span&gt;
+docker.io/library/mysql:latest
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以指定版本下载，但是版本号一定要在 docker hub 中有：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@VM-0-6-centos /&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# docker pull mysql:5.7&lt;/span&gt;
+5.7: Pulling from library/mysql
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 刚才下载了mysql最新版，现在又下载5.7版，有许多可以共用的层不用反复下载&lt;/span&gt;
+bf5952930446: Already exists
+8254623a9871: Already exists
+938e3e06dac4: Already exists
+ea28ebf28884: Already exists
+f3cef38785c2: Already exists
+894f9792565a: Already exists
+1d8a57523420: Already exists
+5f09bf1d31c1: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+1b6ff254abe7: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+74310a0bf42d: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+d398726627fd: Pull &lt;span style=&#34;color:#366&#34;&gt;complete&lt;/span&gt;
+Digest: sha256:da58f943b94721d46e87d5de208dc07302a8b13e638cd1d24285d222376d6d84
+Status: Downloaded newer image &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;for&lt;/span&gt; mysql:5.7
+docker.io/library/mysql:5.7
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;删除指定镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker rmi -f &amp;lt;镜像id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;删除所有镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker rmi -f &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;$(&lt;/span&gt;docker images -aq&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果已经从镜像运行了容器，可能会导致镜像删不掉，报错：image is being used by stopped container&lt;/p&gt;
+&lt;p&gt;可以先删除所有容器记录，再删除镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 删除所有容器记录&lt;/span&gt;
+docker rm &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;$(&lt;/span&gt;docker ps -aq&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 再删除镜像&lt;/span&gt;
+docker rmi -f &amp;lt;镜像id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;容器命令&#34;&gt;容器命令&lt;/h2&gt;
+&lt;p&gt;这里使用 centos 镜像来体验容器。首先下载镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker pull centos
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;新建容器并启动：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 启动并进入容器&lt;/span&gt;
+&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@VM-0-6-centos /&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# docker run -it centos /bin/bash&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 这一步就进入了容器&lt;/span&gt;
+&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@401dc4e6319c /&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;#
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 从容器中退回主机&lt;/span&gt;
+&lt;span style=&#34;color:#366&#34;&gt;exit&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;参数命令解释：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker run &lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;参数列表&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt; &amp;lt;镜像名字或镜像id&amp;gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 容器名字，用于区分容器&lt;/span&gt;
+--name&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;container01&amp;#34;&lt;/span&gt; 
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 后台运行&lt;/span&gt;
+-d
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 使用交互方式运行，进入容器查看内容&lt;/span&gt;
+-it
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 指定容器端口 8080:8080&lt;/span&gt;
+-p
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 随机指定端口&lt;/span&gt;
+-P（大写）
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 从后台启动一个名为 centos007 的 centos 容器，&lt;/span&gt;
+docker run -d -it --name&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;centos007&amp;#34;&lt;/span&gt; centos /bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;列出所有运行中的容器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker ps
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看历史运行的容器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker ps -a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;退出容器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 停止并退出&lt;/span&gt;
+&lt;span style=&#34;color:#366&#34;&gt;exit&lt;/span&gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 不停止容器退出&lt;/span&gt;
+ctrl + p + q
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;删除容器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 删除容器&lt;/span&gt;
+docker rm &amp;lt;容器id&amp;gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 强制删除正在运行的容器&lt;/span&gt;
+docker rm -f &amp;lt;容器id&amp;gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 删除所有容器&lt;/span&gt;
+docker rm -f &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;$(&lt;/span&gt;docker ps -aq&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其他操作容器的一些指令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker start &amp;lt;容器id&amp;gt;
+docker restart &amp;lt;容器id&amp;gt;
+docker stop &amp;lt;容器id&amp;gt;
+docker &lt;span style=&#34;color:#366&#34;&gt;kill&lt;/span&gt; &amp;lt;容器id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看容器日志：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 显示最近的 10 条日志&lt;/span&gt;
+docker logs -t --tail &lt;span style=&#34;color:#f60&#34;&gt;10&lt;/span&gt; &amp;lt;容器id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果没有任何日志，可以在运行容器同时运行一段脚本来生成一些日志：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 启动 centos 并且执行一段脚本&lt;/span&gt;
+docker run -d centos /bin/sh -c &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;while true;do echo hello;sleep 1;done&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看容器中的进程信息：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker top &amp;lt;容器id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看容器的元数据，可以查看到容器的详细信息，包括挂载了哪些卷等信息：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker inspect &amp;lt;容器id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;容器通常都是以后台方式运行，如果要修改一些东西，需要进入容器。&lt;/p&gt;
+&lt;p&gt;进入当前正在运行的容器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 进入容器后开启新的终端，可以在里面操作&lt;/span&gt;
+docker &lt;span style=&#34;color:#366&#34;&gt;exec&lt;/span&gt; -it &amp;lt;容器id&amp;gt; /bin/bash
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 进入容器正在执行的终端，不会启动新的进程&lt;/span&gt;
+docker attach &amp;lt;容器id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从容器中拷贝文件到主机上，不管容器是否运行，都能拷贝&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 把容器的 /home/test.java 文件拷贝到主机的 /home 位置&lt;/span&gt;
+docker cp &amp;lt;容器id&amp;gt;:/home/test.java /home
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;docker-实战&#34;&gt;docker 实战&lt;/h2&gt;
+&lt;h3 id=&#34;安装-nginx&#34;&gt;安装 nginx&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 1.搜索&lt;/span&gt;
+docker search nginx
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 2.下载&lt;/span&gt;
+docker pull nginx
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 3.查看&lt;/span&gt;
+docker images
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 4.启动&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# -d 后台运行&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# --name 给容器命名&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# -p 宿主机端口:容器端口&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# nginx 默认端口为 80，运行好了 nginx 容器后，能以容器的 80 端口访问到&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 再把容器 80 端口，映射到主机的 80 端口&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 访问主机的 80 端口，即访问了容器的 80 端口&lt;/span&gt;
+docker run -d --name nginx01 -p 80:80 nginx
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 进入nginx&lt;/span&gt;
+docker &lt;span style=&#34;color:#366&#34;&gt;exec&lt;/span&gt; -it nginx01 /bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;安装-tomcat&#34;&gt;安装 tomcat&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# --rm 官方示例，一般用于测试，用完就删除该容器&lt;/span&gt;
+docker run -it --rm -p 8080:8080 tomcat:9.0
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 停掉容器后，docker ps -a 都无法查看到容器运行的记录&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;docker-可视化管理后台&#34;&gt;docker 可视化管理后台&lt;/h2&gt;
+&lt;p&gt;portainer，一个可视化的后台管理界面，方便操作：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 安装并启动&lt;/span&gt;
+docker run -d -p 9000:9000 &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    --restart&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;always &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    -v /var/run/docker.sock:/var/run/docker.sock &lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#c30;font-weight:bold&#34;&gt;&lt;/span&gt;    docker.io/portainer/portainer
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 浏览器输入 ip:9090 进入后台&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;docker-镜像加载原理&#34;&gt;docker 镜像加载原理&lt;/h2&gt;
+&lt;p&gt;UnionFS 联合文件系统。&lt;/p&gt;
+&lt;h2 id=&#34;分层理解&#34;&gt;分层理解&lt;/h2&gt;
+&lt;p&gt;所有的 docker 镜像都始于一个基础的镜像层，当修改或者增加新的内容时，就会在当前镜像上，创建新的镜像层。&lt;/p&gt;
+&lt;h2 id=&#34;commit镜像&#34;&gt;commit镜像&lt;/h2&gt;
+&lt;p&gt;可以自己对官方镜像运行成的容器进行修改，然后再打包成新的镜像来使用。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker commit -m&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;提交的描述信息&amp;#34;&lt;/span&gt; -a&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;作者&amp;#34;&lt;/span&gt; 容器id 目标镜像名：&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;TAG&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用 tomcat 镜像来实战。默认的 tomcat 运行后，打开会展示 404 界面，因为 webapps 目录没有网页。往 tomcat 容器的 webapps 目录添加网页，再 commit 这个修改后的容器成为一个镜像。以后只要运行这个镜像，就会得到之前修改后的结果。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 启动默认 tomcat&lt;/span&gt;
+docker run -d -p 8899:8080 --name tom01 tomcat
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 访问，发现 404，里面默认没有任何 webapp&lt;/span&gt;
+http://ip地址:8899/
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 将 webapps.dist 里面所有文件，复制到 webapps 目录下&lt;/span&gt;
+cp -r webapps.dist/** webapps
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# commit这个镜像，以后就可以直接使用这个修改过的镜像&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# tomcat02:1.0 自定义名字:版本号&lt;/span&gt;
+docker commit -a&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;jiexiang&amp;#34;&lt;/span&gt; -m&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;add web apps&amp;#34;&lt;/span&gt; e335c2745f03 tomcat007:1.0
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 得到返回信息&lt;/span&gt;
+sha256:3e246503a0b1da36c41b7c71f3a78da365fe3255a46d11fac95c8a11b5c8a6e8
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 查看自己打包的镜像&lt;/span&gt; 
+docker images
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 删除之前启动的那个容器，再启动自己打包好的镜像&lt;/span&gt;
+docker run -d -p 8899:8080 tomcat007:1.0
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 访问，发现没问题。再进入容器内目录查看，发现和刚才自己操作的结果一样&lt;/span&gt;
+http://ip地址:8899/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;容器数据卷&#34;&gt;容器数据卷&lt;/h2&gt;
+&lt;p&gt;将应用和环境打包成一个镜像，如果数据都在容器中，容器删除，数据也会丢失。例如：MySQL 容器，删除，数据也会丢失。tomcat 容器删除，里面 webapps 也会随之删除。&lt;/p&gt;
+&lt;p&gt;另外在使用 tomcat 容器时，每次部署网页都需要进入到容器，去操作那些目录，也非常麻烦。&lt;/p&gt;
+&lt;p&gt;如果容器内的目录，能映射到服务器主机本地的某个目录，操作本地目录的时候，就会同步到容器内。如果删除容器，本地这个目录也不受影响。这就是数据卷挂载。&lt;/p&gt;
+&lt;h3 id=&#34;使用数据卷&#34;&gt;使用数据卷&lt;/h3&gt;
+&lt;p&gt;方式一：使用命令挂载 -v&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker run -v 主机目录:容器内目录
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;不管在容器内修改了文件，还是在 linux 主机上修改了文件，两边都会同步。&lt;/p&gt;
+&lt;h3 id=&#34;实战安装-mysql&#34;&gt;实战：安装 MySQL&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 获取镜像&lt;/span&gt;
+docker pull mysql:5.7
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 运行容器，需要的数据挂载。启动mysql需要配置密码&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# -d 后台运行&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# -p 端口映射&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# -v 卷挂载&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# -e 环境配置&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# --name 容器名字&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 配置密码：-e MYSQL_ROOT_PASSWORD=123456&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 这里把mysql配置文件和mysql数据文件都挂载到了linux本地&lt;/span&gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 挂载的目录，主机目录:容器内目录&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# /home/mysql/conf : /etc/mysql/conf.d&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# /home/mysql/data : /var/lib/mysql&lt;/span&gt;
+
+docker run -d -p 3306:3306 -v /home/mysql/conf:/etc/mysql/conf.d -v /home/mysql/data:/var/lib/mysql -e &lt;span style=&#34;color:#033&#34;&gt;MYSQL_ROOT_PASSWORD&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#f60&#34;&gt;123456&lt;/span&gt; --name mysql01 mysql:5.7
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 启动成功之后，我们在本地连接，创建一个数据库（目的就是增加一些数据文件）&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 再打开 linux 本地挂载目录，又查看容器内数据目录，发现文件都一样，证明两边确实同步了&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;实战容器与容器之间的数据卷&#34;&gt;实战：容器与容器之间的数据卷&lt;/h3&gt;
+&lt;p&gt;容器与容器之间，可以共用一个数据卷。&lt;/p&gt;
+&lt;p&gt;先启动一个名叫 centos1 的容器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker run -it --name centos1 centos
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;退到本机：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;control + p + q
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;再次启动一个容器，名叫 centos2，把 centos2 和 centos1 数据卷关联：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 通过--volumes-from实现容器间的数据共享&lt;/span&gt;
+docker run -it --name centos2 --volumes-from centos1 centos
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;无论在 centos1 还是 centos2 容器，操作数据卷内容，两边都会同步。&lt;/p&gt;
+&lt;p&gt;尝试删除 centos1，然后去 centos2 查看数据，数据依然存在。&lt;/p&gt;
+&lt;p&gt;容器之间挂载目录，如果目录发生改动，会互相拷贝。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;结论：容器之间配置信息的传递，数据卷的生命周期一直持续到没有容器使用为止，数据持久化到本地，是不会因为容器删除而被删除。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;匿名和具名挂载&#34;&gt;匿名和具名挂载&lt;/h2&gt;
+&lt;p&gt;匿名挂载，就是不指定本地主机的挂载目录：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 匿名挂载&lt;/span&gt;
+-v 容器内路径
+docker run -d -P --name nginx01 -v /etc/nginx nginx
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 查看所有 volume 情况&lt;/span&gt;
+docker volume ls
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 匿名挂载，-v 只写了容器内的路径，没有写容器外的路径。&lt;/span&gt;
+DRIVER              VOLUME NAME
+&lt;span style=&#34;color:#366&#34;&gt;local&lt;/span&gt;     0bf49cf0e50ab05d1c1c40793dea463a2bd6a18ace6db24debad9f5738b9c978
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;具名挂载，指定一个文件夹名字，而不是一个目录路径：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 具名挂载&lt;/span&gt;
+docker run -d -P --name nginx02 -v juming-nginx:/etc/nginx nginx
+
+docker volume ls
+
+DRIVER              VOLUME NAME
+&lt;span style=&#34;color:#366&#34;&gt;local&lt;/span&gt;               juming-nginx
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;不管是匿名还是具名，其本地映射目录都在&lt;code&gt;/var/lib/docker/volumes/&lt;/code&gt;，打开这个文件夹可以看到里面的情况。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;通过具名挂载可以方便地找到卷，推荐使用。匿名挂载不推荐使用。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如何确定是具名挂载还是匿名挂载，还是指定路径挂载：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 匿名&lt;/span&gt;
+-v &amp;lt;容器内路径&amp;gt; 
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 具名&lt;/span&gt;
+-v &amp;lt;卷名&amp;gt;:&amp;lt;容器内路径&amp;gt; 
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 指定路径挂载&lt;/span&gt;
+-v &amp;lt;宿主机路径&amp;gt;:&amp;lt;容器内路径&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;dockerfile&#34;&gt;dockerfile&lt;/h2&gt;
+&lt;p&gt;docker 镜像逐渐成为企业交付的标准，以后要发布项目，就需要编写 dockerfile 文件。&lt;/p&gt;
+&lt;p&gt;dockerfile：构建文件，定义一切步骤，源代码。&lt;/p&gt;
+&lt;p&gt;dockerimages：通过 dockerfile 构建生成的镜像，最终发布和运行的产品。&lt;/p&gt;
+&lt;h3 id=&#34;dockerfile-指令介绍&#34;&gt;dockerfile 指令介绍&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;命令&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;意义&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;FROM&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;基础镜像，一切从这里开始构建&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;MAINTAINER&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;镜像是谁写的，姓名+邮箱&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;RUN&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;镜像构建的时候需要运行的命令&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;ADD&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;添加到镜像的内容&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;WORKDIR&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;镜像的工作目录&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;VOLUME&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;挂载卷&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;EXPOSE&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;暴露端口&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;CMD&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;指定这个容器启动的时候运行的命令，只有最后一个会生效，可被替代&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;ENTRYPOINT&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;指定这个容器启动的时候运行的命令，可以追加命令&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;ONBUILD&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;当构建一个被继承 dockerfile 这个时候就会运行ONBUILD，触发指令&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;COPY&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;类似ADD，将文件拷贝到镜像中&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;ENV&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;构建的时候设置环境变量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;一般 dockerfile 标准命名为：&lt;code&gt;Dockerfile&lt;/code&gt;，也可以自己定义名字。&lt;/p&gt;
+&lt;h3 id=&#34;dockerfile-实战1&#34;&gt;dockerfile 实战1&lt;/h3&gt;
+&lt;p&gt;Dockerfile 就是用来构建 docker 镜像的构建文件，命令脚本。&lt;/p&gt;
+&lt;p&gt;新建脚本文件 dockerfile1：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 以 centos 镜像为基础&lt;/span&gt;
+FROM centos
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 挂载这两个卷&lt;/span&gt;
+VOLUME &lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;volume01&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;volume02&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 输出文字&lt;/span&gt;
+CMD &lt;span style=&#34;color:#366&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;...end...&amp;#34;&lt;/span&gt;
+CMD /bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;通过dockerfile构建镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 构建&lt;/span&gt;
+docker build -f /home/docker-test-volume/dockerfile1 -t jx/centos:1.0 .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;启动自己生成的容器&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@VM-0-6-centos docker-test-volume&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# docker run -it b21d8403c736 /bin/bash&lt;/span&gt;
+&lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt;root@813457d74eb2 /&lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# ls&lt;/span&gt;
+bin  etc   lib	  lost+found  mnt  proc  run   srv  tmp  var	   volume02
+dev  home  lib64  media       opt  root  sbin  sys  usr  volume01
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# volume01 volume02 就是生成镜像的时候，自动挂载的目录&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 进入 volume01，随便生成一个文件出来&lt;/span&gt;
+touch xxx.txt 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 回到linux本机&lt;/span&gt;
+control + p + q
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 查看容器&lt;/span&gt;
+docker ps
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 查看容器详情&lt;/span&gt;
+docker inspect &amp;lt;容器id&amp;gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 寻找 amount 字段，找到容器挂载目录所映射的本地目录，查看到刚才在容器生成的文件，发现存在&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;dockerfile-实战2&#34;&gt;dockerfile 实战2&lt;/h3&gt;
+&lt;p&gt;大多数镜像都是从 scratch 的基础上构建。&lt;/p&gt;
+&lt;p&gt;默认的 centos 镜像所生成的容器，里面没有 vim ifconfig 等命令，现在自己基于 centos 镜像，来构建一个带有这些命令的镜像。&lt;/p&gt;
+&lt;p&gt;新建 dockerfile2 文件：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-dockerfile&#34; data-lang=&#34;dockerfile&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 以 centos 镜像为基础&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;FROM&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt; centos&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 作者信息&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;MAINTAINER&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt; jx&amp;lt;123456@qq.com&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 配置环境变量&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;ENV&lt;/span&gt; MYPATH /usr/local&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 工作目录&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;WORKDIR&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt; $MYPATH&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 安装两个工具&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;RUN&lt;/span&gt; yum -y install vim&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;RUN&lt;/span&gt; yum -y install net-tools&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 暴露端口&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;EXPOSE&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt; 80&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# 输出&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;CMD&lt;/span&gt; &lt;span style=&#34;color:#366&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#033&#34;&gt;$MYPATH&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;CMD&lt;/span&gt; &lt;span style=&#34;color:#366&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;---end---&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;CMD&lt;/span&gt; /bin/bash&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;生成镜像：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker build -f /home/docker-test-volume/dockerfile2 -t jx/centos:2.0 .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看镜像 id：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker images
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;运行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker run -it &amp;lt;镜像id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后在容器内，发现vim、ifconfig 指令都能使用。&lt;/p&gt;
+&lt;p&gt;查看镜像的历史：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker &lt;span style=&#34;color:#366&#34;&gt;history&lt;/span&gt; &amp;lt;镜像id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
