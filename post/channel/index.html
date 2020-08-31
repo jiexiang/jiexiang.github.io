@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-cn" data-theme="">
+<head>
+    
+        
+<meta charset="utf-8">
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer-when-downgrade">
+
+<title>Go 协程基础 - 天府码农博客</title>
+<meta name="description" content="天府码农博客">
+
+<link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
+<link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
+
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1598861423" />
+<style>
+
+    [data-theme="dark"] {   
+        --font-color: #eee;
+--bg-color: #212121;
+
+--link-color:#599ada;
+--link-state-color:#ff5858;
+--link-state-border-color: rgba(238, 54, 54, 0.5);
+
+--thead-bg-color: #343a40;
+--table-border-color: lightgrey;
+
+--pre-color: #333;
+--pre-bg-color: #f1f1f1;
+
+--bq-color: #ccc;
+--hr-color: #333;
+
+--pagination-bg-color: #373737;
+--pagination-link-color: #b6b6b6;
+
+--post-info-color: grey;
+
+--switcher-color: #333;
+--switcher-bg-color: #fff;
+
+    }
+
+</style>
+
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1598861423" />
+
+
+
+
+
+<meta property="og:title" content="Go 协程基础" />
+<meta property="og:description" content="基本概念 一个应用程序是运行在机器上的一个进程，进程是一个运行在自己内存地址空间里的独立执行体。一个进程由一个或多个操作系统线程组成，这些线程其实是共享同一个内存地址空间的一起工作的执行体。几乎所有的程序都是多线程的。这样的好处是同时服务多个请求、增加性能、吞吐量。
+一个并发程序可以在一个处理器或者内核上使用多个线程来执行任务，但是只有同一个程序在某个时间点同时运行在多核或者多处理器上才是真正的并行。并行是一种通过使用多处理器以提高速度的能力。所以并发程序可以是并行的，也可以不是。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jiexiang.github.io/post/channel/" />
+<meta property="article:published_time" content="2020-08-31T15:40:56+08:00" />
+<meta property="article:modified_time" content="2020-08-31T15:40:56+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Go 协程基础"/>
+<meta name="twitter:description" content="基本概念 一个应用程序是运行在机器上的一个进程，进程是一个运行在自己内存地址空间里的独立执行体。一个进程由一个或多个操作系统线程组成，这些线程其实是共享同一个内存地址空间的一起工作的执行体。几乎所有的程序都是多线程的。这样的好处是同时服务多个请求、增加性能、吞吐量。
+一个并发程序可以在一个处理器或者内核上使用多个线程来执行任务，但是只有同一个程序在某个时间点同时运行在多核或者多处理器上才是真正的并行。并行是一种通过使用多处理器以提高速度的能力。所以并发程序可以是并行的，也可以不是。"/>
+
+
+
+
+
+
+
+
+    
+</head>
+<body>
+    <a class="skip-main" href="#main"></a>
+    <div class="container">
+        <header class="common-header"> 
+            
+                <h1 class="site-title">
+    <a href="/">天府码农博客</a>
+</h1>
+
+    <nav>
+        
+        
+        <a class="" href="https://jiexiang.github.io/posts/" title="">归档</a>
+        
+    </nav>
+
+
+            
+        </header>
+        <main id="main" tabindex="-1"> 
+            
+    
+    
+    <article class="post">
+        <header class="post-header">
+            <h1 class="post-title">Go 协程基础</h1>
+        </header>
+        <div class="content">
+            <h2 id="基本概念">基本概念</h2>
+<p>一个<strong>应用程序</strong>是运行在机器上的一个<strong>进程</strong>，进程是一个运行在自己内存地址空间里的独立执行体。一个进程由一个或多个操作系统<strong>线程</strong>组成，这些线程其实是共享同一个内存地址空间的一起工作的执行体。几乎所有的程序都是多线程的。这样的好处是同时服务多个请求、增加性能、吞吐量。</p>
+<p>一个<strong>并发程序</strong>可以在一个处理器或者内核上使用<strong>多个线程</strong>来执行任务，但是只有<strong>同一个程序</strong>在某个时间点<strong>同时</strong>运行在<strong>多核</strong>或者<strong>多处理器</strong>上才是真正的<strong>并行</strong>。<strong>并行</strong>是一种通过使用多处理器以提高速度的能力。所以并发程序可以是并行的，也可以不是。</p>
+<blockquote>
+<p>并行执行取决于计算机是否多核。</p>
+</blockquote>
+<p>在 Go 中，应用程序并发处理的部分被称作 <code>goroutines（协程）</code>，协程和操作系统线程之间并无一对一的关系，协程是根据一个或多个线程的可用性，映射（多路复用，执行于）在它们之上的，协程调度器在 Go 运行时很好的完成了这个工作。</p>
+<p>当系统调用（比如等待 I/O）阻塞协程时，其他协程会继续在其他线程上工作。协程的设计隐藏了许多线程创建和管理方面的复杂工作。</p>
+<p>协程是轻量的，比线程更轻。使用 4K 的栈内存就可以在堆中创建它们，因为创建非常廉价，必要的时候可以轻松创建并运行大量的协程。并且它们对栈进行了分割，从而动态的增加（或缩减）内存的使用，栈的管理是自动的，但不是由垃圾回收器管理的，是在协程退出后自动释放。</p>
+<p>协程可以运行在多个操作系统<strong>线程</strong>之间，也可以运行在线程之内。协程是通过使用关键字 <code>go</code> 调用，这样会在当前的计算过程中开始一个同时进行的函数，在相同的地址空间中并且分配了独立的栈。协程的栈会根据需要进行伸缩，不出现栈溢出；开发者不需要关心栈的大小。当协程结束的时候，它会静默退出。</p>
+<p>任何 Go 程序都必须有的 <code>main()</code> 函数也可以看做是一个协程。</p>
+<h2 id="并发和并行的差异">并发和并行的差异</h2>
+<p><strong>并发</strong>程序可能是并行的，也可能不是。如果只有一个独立的核心或处理器被专门用于 Go 程序，同一时间只有一个协程会处在运行状态。</p>
+<p><strong>并行</strong>是一种通过使用多处理器以提高速度的能力。为了使程序可以使用多个核心运行，这时协程就真正的是并行运行，必须使用 <code>GOMAXPROCS</code> 变量，这会告诉运行时有多少个协程同时执行。</p>
+<h2 id="gomaxprocs">GOMAXPROCS</h2>
+<p>在 gc 编译器下，必须设置 GOMAXPROCS 为一个大于默认值 1 的数值，来允许运行时支持使用多于 1 个的操作系统线程。如果不将 GOMAXPROCS 设置为一个大于 1 的数，那么所有的协程都会共享同一个线程。当 GOMAXPROCS 大于 1 时，会有一个线程池管理许多的线程。</p>
+<p>假设 n 是机器上处理器或者核心的数量，如果设置环境变量 GOMAXPROCS&gt;=n，或者执行 <code>runtime.GOMAXPROCS(n)</code>，接下来协程会被分割（分散）到 n 个处理器上。</p>
+<p>更多的处理器并不意味着性能的线性提升。对于 n 个核心的情况设置 GOMAXPROCS 为 n-1 以获得最佳性能，需要遵守这条规则：协程的数量 &gt; 1 + GOMAXPROCS &gt; 1。</p>
+<p>如果在某一时间只有一个协程在执行，不要设置 GOMAXPROCS。增加 GOMAXPROCS 的数值对程序进行并发计算是有好处的。</p>
+<blockquote>
+<p>总结：GOMAXPROCS 等同于（并发的）线程数量，在一台核心数多于1个的机器上，会尽可能有等同于核心数的线程在并行运行。</p>
+</blockquote>
+<p>指定使用的核心数量：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">runtime.<span style="color:#c0f">GOMAXPROCS</span>(numCores)
+</code></pre></div><p>当 <code>main()</code> 函数返回的时候，程序退出：它不会等待任何其他非 main 协程的结束。这就是为什么在服务器程序中，每一个请求都会启动一个协程来处理，<code>server</code> 必须保持运行状态。通常使用一个无限循环来达到这样的目的。</p>
+<p>协程是独立的处理单元，一旦陆续启动一些协程，你无法确定它们是什么时候真正开始执行的。代码逻辑必须独立于协程调用的顺序。</p>
+<h2 id="协程间的信道">协程间的信道</h2>
+<p>协程通信：彼此之间发送和接收信息并且协调/同步它们的工作。Go 有一种特殊的类型：<strong>通道（channel）</strong>。像一个可以用于发送类型化数据的管道，由其负责协程之间的通信。通过通道进行通信的方式保证了同步性。</p>
+<p>数据在通道中进行传递：<em>在任何给定时间，一个数据被设计为只有一个协程可以对其访问，所以不会发生数据竞争。</em> 数据的所有权（可以读写数据的能力）也因此被传递。</p>
+<p>通道只能传输一种类型的数据，比如 <code>chan int</code> 或者 <code>chan string</code>，空接口 <code>interface{}</code> 也可以，甚至可以创建通道的通道。</p>
+<p>通道实际上是类型化消息的队列：使数据得以传输。它是先进先出（FIFO）的结构所以可以保证发送给他们的元素的顺序，通道也是引用类型，所以我们使用 <code>make()</code> 函数来给它分配内存。</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">string</span>)
+</code></pre></div><p>可以存储在变量中，作为函数的参数传递，从函数返回以及通过通道发送它们自身。</p>
+<h2 id="通信操作符--">通信操作符 &lt;-</h2>
+<p>这个操作符直观的标示了数据的传输：信息按照箭头的方向流动。</p>
+<h3 id="发送">发送</h3>
+<p><code>ch &lt;- int1</code> 表示：用通道 ch 发送变量 int1。</p>
+<h3 id="接收">接收</h3>
+<p><code>int2 = &lt;- ch</code> 表示：变量 int2 从通道 ch接收数据。</p>
+<h2 id="通道阻塞">通道阻塞</h2>
+<p>默认情况下，通信是同步且无缓冲的：在有接受者接收数据之前，发送不会结束。必须要一个接收者准备好接收通道的数据然后发送者可以直接把数据发送给接收者。</p>
+<p>所以通道的发送/接收操作在对方准备好之前是阻塞的：</p>
+<ol>
+<li>对于同一个通道，发送操作，在接收者准备好之前是阻塞的：如果 ch 中的数据无人接收，就无法再给通道传入其他数据，新的输入无法在通道非空的情况下传入，所以发送操作会等待 ch 再次变为可用状态，就是通道值被接收时。</li>
+<li>对于同一个通道，接收操作是阻塞的，直到发送者可用：如果通道中没有数据，接收者就阻塞了。</li>
+</ol>
+<h2 id="通过通道交换数据进行协程同步">通过通道交换数据进行协程同步</h2>
+<p>通信是一种同步形式，通过通道，两个协程在通信中某刻同步交换数据。无缓冲通道成为了多个协程同步的完美工具。甚至可以在通道两端互相阻塞对方，形成了叫做死锁的状态。Go 运行时会检查并 panic，停止程序。死锁几乎完全是由糟糕的设计导致的。</p>
+<p>无缓冲通道会被阻塞。设计无阻塞的程序可以避免这种情况，或者使用带缓冲的通道。</p>
+<h2 id="使用带缓冲的通道">使用带缓冲的通道</h2>
+<p>一个无缓冲通道只能包含 1 个元素，可以在扩展的 <code>make</code> 命令中设置它的容量。</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">buf <span style="color:#555">:=</span> <span style="color:#f60">100</span>
+ch1 <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">string</span>, buf)
+</code></pre></div><p>在缓冲满载（缓冲被全部使用）之前，给一个带缓冲的通道发送数据是不会阻塞的，而从通道读取数据也不会阻塞，直到缓冲空了。</p>
+<p>如果容量大于 0，通道就是异步的了：缓冲满载（发送）或变空（接收）之前通信不会阻塞，元素会按照发送的顺序被接收。如果容量是 0 或者未设置，通信仅在收发双方准备好的情况下才可以成功。</p>
+<p>若使用通道的缓冲，你的程序会在“请求”激增的时候表现更好：更具弹性，专业术语叫：更具有伸缩性（scalable）。在设计算法时首先考虑使用无缓冲通道，只在不确定的情况下使用缓冲。</p>
+<p>示例程序：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">main</span>() {
+	c <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>, <span style="color:#f60">50</span>)
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#069;font-weight:bold">func</span>() {
+		time.<span style="color:#c0f">Sleep</span>(<span style="color:#f60">3</span> <span style="color:#555">*</span> <span style="color:#f60">1e9</span>)
+		x <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>c
+		fmt.<span style="color:#c0f">Println</span>(<span style="color:#c30">&#34;received&#34;</span>, x)
+	}()
+	fmt.<span style="color:#c0f">Println</span>(<span style="color:#c30">&#34;sending&#34;</span>, <span style="color:#f60">10</span>)
+	c <span style="color:#555">&lt;-</span> <span style="color:#f60">10</span>
+	fmt.<span style="color:#c0f">Println</span>(<span style="color:#c30">&#34;sent&#34;</span>, <span style="color:#f60">10</span>)
+}
+
+输出:
+sending <span style="color:#f60">10</span>
+sent <span style="color:#f60">10</span>
+</code></pre></div><p>解析：c 缓冲区大小不为 0，代码<code>c &lt;- 10</code>不会阻塞，<code>main</code>函数执行完毕。</p>
+<p>若将缓冲改为 0，则：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">c <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>)
+
+输出:
+sending <span style="color:#f60">10</span>
+received <span style="color:#f60">10</span>
+sent <span style="color:#f60">10</span>
+</code></pre></div><p>解析：c 缓冲区大小为 0，代码<code>c &lt;- 10</code>会阻塞，导致<code>main</code>函数无法结束。等到 3 秒后执行协程里面的代码<code>x := &lt;-c</code>，代码<code>c &lt;- 10</code>不再阻塞，<code>main</code>函数执行完毕。</p>
+<blockquote>
+<p>总结：若通道带缓冲，则写入操作不会被阻塞，导致 main 函数结束，其他协程也随之结束。</p>
+</blockquote>
+<h2 id="信号量">信号量</h2>
+<p>为了知道计算何时完成，可以通过信道回报。</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>)
+<span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">sum</span>(bigArray, ch) <span style="color:#09f;font-style:italic">// bigArray puts the calculated sum on ch
+</span><span style="color:#09f;font-style:italic">// .. do something else for a while
+</span><span style="color:#09f;font-style:italic"></span>sum <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span> ch <span style="color:#09f;font-style:italic">// wait for, and retrieve the sum
+</span></code></pre></div><p>这个很有效的用法在传统计算机中称为信号量（semaphore）。在其他协程运行时让 main 程序无限阻塞的通常做法是在 <code>main</code> 函数的最后放置一个 <code>select {}</code>，也可以使用通道让 <code>main</code> 程序等待协程完成。</p>
+<blockquote>
+<p>通过 &lt;- ch，从而阻塞通道，防止 main 函数执行结束，等到另外一个协程执行完毕，将结果值放入 ch。</p>
+</blockquote>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">type</span> Empty <span style="color:#069;font-weight:bold">interface</span> {}
+<span style="color:#069;font-weight:bold">var</span> empty Empty
+<span style="color:#555">...</span>
+data <span style="color:#555">:=</span> <span style="color:#366">make</span>([]<span style="color:#078;font-weight:bold">float64</span>, N)
+res <span style="color:#555">:=</span> <span style="color:#366">make</span>([]<span style="color:#078;font-weight:bold">float64</span>, N)
+sem <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> Empty, N)
+<span style="color:#555">...</span>
+<span style="color:#069;font-weight:bold">for</span> i, xi <span style="color:#555">:=</span> <span style="color:#069;font-weight:bold">range</span> data {
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#069;font-weight:bold">func</span> (i <span style="color:#078;font-weight:bold">int</span>, xi <span style="color:#078;font-weight:bold">float64</span>) {
+		res[i] = <span style="color:#c0f">doSomething</span>(i, xi)
+		sem <span style="color:#555">&lt;-</span> empty
+	} (i, xi)
+}
+<span style="color:#09f;font-style:italic">// wait for goroutines to finish
+</span><span style="color:#09f;font-style:italic"></span><span style="color:#069;font-weight:bold">for</span> i <span style="color:#555">:=</span> <span style="color:#f60">0</span>; i &lt; N; i<span style="color:#555">++</span> { <span style="color:#555">&lt;-</span>sem }
+</code></pre></div><p>这个例子中，在循环中，不断开启新的协程，并且把参数 i，xi 作为一份单独拷贝放入函数中。如果不传参而直接在函数体使用变量，变量值会随着每次循环而改变。</p>
+<p>在 for 循环中并行计算迭代可能带来很好的性能提升，不过所有的迭代都必须是独立完成的。</p>
+<blockquote>
+<p>创建了缓冲区大小为 N 的 chan，开启了多个协程去执行任务，最后需要从 chan 取出 N 个结果，程序才算执行完毕。</p>
+</blockquote>
+<p>使用 for range 从通道中取值：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">for</span> v <span style="color:#555">:=</span> <span style="color:#069;font-weight:bold">range</span> ch {
+	fmt.<span style="color:#c0f">Printf</span>(<span style="color:#c30">&#34;The value is %v\n&#34;</span>, v)
+}
+</code></pre></div><p>它从指定通道中读取数据直到通道关闭，才继续执行下边的代码。另外一个协程必须写入 <code>ch</code>（不然代码就阻塞在 for 循环了），而且必须在写入完成后才关闭。</p>
+<h2 id="通道的方向">通道的方向</h2>
+<p>通道类型可以用注解来表示它只发送或者只接收：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">var</span> send_only <span style="color:#069;font-weight:bold">chan</span><span style="color:#555">&lt;-</span> <span style="color:#078;font-weight:bold">int</span> 		<span style="color:#09f;font-style:italic">// 只接收数据
+</span><span style="color:#09f;font-style:italic"></span><span style="color:#069;font-weight:bold">var</span> recv_only <span style="color:#555">&lt;-</span><span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>		<span style="color:#09f;font-style:italic">// 只发送数据
+</span></code></pre></div><p>只接收的通道（&lt;-chan T）无法关闭，因为关闭通道是发送者用来表示不再给通道发送值了。道创建的时候都是双向的，但也可以分配有方向的通道变量，通过使用方向注解来限制协程对通道的操作。</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">var</span> c = <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>) <span style="color:#09f;font-style:italic">// bidirectional
+</span><span style="color:#09f;font-style:italic"></span><span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">source</span>(c)
+<span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">sink</span>(c)
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">source</span>(ch <span style="color:#069;font-weight:bold">chan</span><span style="color:#555">&lt;-</span> <span style="color:#078;font-weight:bold">int</span>){
+	<span style="color:#069;font-weight:bold">for</span> { ch <span style="color:#555">&lt;-</span> <span style="color:#f60">1</span> }
+}
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">sink</span>(ch <span style="color:#555">&lt;-</span><span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>) {
+	<span style="color:#069;font-weight:bold">for</span> { <span style="color:#555">&lt;-</span>ch }
+}
+</code></pre></div><h2 id="协程同步关闭通道-测试阻塞">协程同步：关闭通道-测试阻塞</h2>
+<p>通道可以被显式的关闭；尽管它们和文件不同：不必每次都关闭。只有在当需要告诉接收者不会再提供新的值的时候，才需要关闭通道。只有发送者需要关闭通道，接收者永远不会需要。</p>
+<p>可以通过函数 <code>close(ch)</code> 来完成：这个将通道标记为无法通过发送操作 <code>&lt;-</code> 接受更多的值，给已经关闭的通道发送或者再次关闭都会导致运行时的 panic。在创建一个通道后使用 defer 语句是个不错的办法：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">float64</span>)
+<span style="color:#069;font-weight:bold">defer</span> <span style="color:#366">close</span>(ch)
+</code></pre></div><p>可以使用逗号，ok 操作符：用来检测通道是否被关闭：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">v, ok <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>ch
+</code></pre></div><p>通常和 if 语句一起使用：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">if</span> v, ok <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>ch; ok {
+	<span style="color:#c0f">process</span>(v)
+}
+</code></pre></div><div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">main</span>() {
+	ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">string</span>)
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">sendData</span>(ch)
+	<span style="color:#c0f">getData</span>(ch)
+}
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">sendData</span>(ch <span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">string</span>) {
+	ch <span style="color:#555">&lt;-</span> <span style="color:#c30">&#34;Washington&#34;</span>
+	ch <span style="color:#555">&lt;-</span> <span style="color:#c30">&#34;Tripoli&#34;</span>
+	ch <span style="color:#555">&lt;-</span> <span style="color:#c30">&#34;London&#34;</span>
+	ch <span style="color:#555">&lt;-</span> <span style="color:#c30">&#34;Beijing&#34;</span>
+	ch <span style="color:#555">&lt;-</span> <span style="color:#c30">&#34;Tokio&#34;</span>
+	<span style="color:#366">close</span>(ch)
+}
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">getData</span>(ch <span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">string</span>) {
+	<span style="color:#069;font-weight:bold">for</span> {
+		input, open <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>ch
+		<span style="color:#069;font-weight:bold">if</span> !open {
+			<span style="color:#069;font-weight:bold">break</span>
+		}
+		fmt.<span style="color:#c0f">Printf</span>(<span style="color:#c30">&#34;%s &#34;</span>, input)
+	}
+}
+</code></pre></div><p>现在只有 <code>sendData()</code> 是协程，<code>getData()</code> 和 <code>main()</code> 在同一个线程中，在 <code>sendData()</code> 函数的最后，关闭了通道，在 for 循环的 <code>getData()</code> 中，在每次接收通道的数据之前都使用 <code>if !open</code> 来检测，使用 for-range 语句来读取通道是更好的办法，因为这会自动检测通道是否关闭：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">for</span> input <span style="color:#555">:=</span> <span style="color:#069;font-weight:bold">range</span> ch {
+	<span style="color:#c0f">process</span>(input)
+}
+</code></pre></div><h2 id="使用-select-切换协程">使用 select 切换协程</h2>
+<p>从不同的并发执行的协程中获取值可以通过关键字<code>select</code>来完成，<code>select</code>监听进入通道的数据，也可以是用通道发送值的时候。</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">select</span> {
+<span style="color:#069;font-weight:bold">case</span> u<span style="color:#555">:=</span> <span style="color:#555">&lt;-</span> ch1:
+        <span style="color:#555">...</span>
+<span style="color:#069;font-weight:bold">case</span> v<span style="color:#555">:=</span> <span style="color:#555">&lt;-</span> ch2:
+        <span style="color:#555">...</span>
+        <span style="color:#555">...</span>
+<span style="color:#069;font-weight:bold">default</span>: <span style="color:#09f;font-style:italic">// no value ready to be received
+</span><span style="color:#09f;font-style:italic"></span>        <span style="color:#555">...</span>
+}
+</code></pre></div><p><code>default</code> 语句是可选的，在任何一个 case 中执行 <code>break</code> 或者 <code>return</code>，select 就结束了。<code>select</code> 做的就是：选择处理列出的多个通信情况中的一个：</p>
+<ul>
+<li>如果都阻塞了，会等待直到其中一个可以处理</li>
+<li>如果多个可以处理，随机选择一个</li>
+<li>如果没有通道操作可以处理并且写了 <code>default</code> 语句，它就会执行</li>
+</ul>
+<p>如果没有 <code>default</code>，select 就会一直阻塞。<code>select</code> 语句实现了一种监听模式，通常用在（无限）循环中，在某种情况下，通过 <code>break</code> 语句使循环退出。</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">main</span>() {
+	ch1 <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>)
+	ch2 <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>)
+
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">pump1</span>(ch1)
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">pump2</span>(ch2)
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#c0f">suck</span>(ch1, ch2)
+
+	time.<span style="color:#c0f">Sleep</span>(<span style="color:#f60">1e9</span>)
+}
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">pump1</span>(ch <span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>) {
+	<span style="color:#069;font-weight:bold">for</span> i <span style="color:#555">:=</span> <span style="color:#f60">0</span>; ; i<span style="color:#555">++</span> {
+		ch <span style="color:#555">&lt;-</span> i <span style="color:#555">*</span> <span style="color:#f60">2</span>
+	}
+}
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">pump2</span>(ch <span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>) {
+	<span style="color:#069;font-weight:bold">for</span> i <span style="color:#555">:=</span> <span style="color:#f60">0</span>; ; i<span style="color:#555">++</span> {
+		ch <span style="color:#555">&lt;-</span> i <span style="color:#555">+</span> <span style="color:#f60">5</span>
+	}
+}
+
+<span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">suck</span>(ch1, ch2 <span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>) {
+	<span style="color:#069;font-weight:bold">for</span> {
+		<span style="color:#069;font-weight:bold">select</span> {
+		<span style="color:#069;font-weight:bold">case</span> v <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>ch1:
+			fmt.<span style="color:#c0f">Printf</span>(<span style="color:#c30">&#34;Received on channel 1: %d\n&#34;</span>, v)
+		<span style="color:#069;font-weight:bold">case</span> v <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>ch2:
+			fmt.<span style="color:#c0f">Printf</span>(<span style="color:#c30">&#34;Received on channel 2: %d\n&#34;</span>, v)
+		}
+	}
+}
+</code></pre></div><p>在程序中有 2 个通道 <code>ch1</code> 和 <code>ch2</code>，三个协程 <code>pump1()</code>、<code>pump2()</code> 和 <code>suck()</code>。这是一个典型的生产者消费者模式。在无限循环中，<code>ch1</code> 和 <code>ch2</code> 通过 <code>pump1()</code> 和 <code>pump2()</code> 填充整数；<code>suck()</code> 也是在无限循环中轮询输入的，通过 <code>select</code> 语句获取 <code>ch1</code> 和 <code>ch2</code> 的整数并输出。选择哪一个 case 取决于哪一个通道收到了信息。</p>
+<h2 id="通道超时和计时器ticker">通道、超时和计时器（Ticker）</h2>
+<p><code>time.Ticker</code> 结构体，这个对象以指定的时间间隔重复的向通道 C 发送时间值：</p>
+<p>每隔一秒输出时间：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">main</span>() {
+	<span style="color:#069;font-weight:bold">var</span> dur time.Duration = <span style="color:#f60">1e9</span>
+	chRate <span style="color:#555">:=</span> time.<span style="color:#c0f">Tick</span>(dur) <span style="color:#09f;font-style:italic">// a tick every 1/10th of a second
+</span><span style="color:#09f;font-style:italic"></span>	<span style="color:#069;font-weight:bold">for</span> {
+		fmt.<span style="color:#c0f">Println</span>(<span style="color:#555">&lt;-</span>chRate)
+	}
+}
+</code></pre></div><p>还有 <code>time.After(d)</code> 函数，设置超时时间：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#069;font-weight:bold">func</span> <span style="color:#c0f">main</span>() {
+	timeout <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">bool</span>, <span style="color:#f60">1</span>)
+	<span style="color:#069;font-weight:bold">go</span> <span style="color:#069;font-weight:bold">func</span>() {
+		time.<span style="color:#c0f">Sleep</span>(<span style="color:#f60">1e9</span>) <span style="color:#09f;font-style:italic">// one second
+</span><span style="color:#09f;font-style:italic"></span>		timeout <span style="color:#555">&lt;-</span> <span style="color:#069;font-weight:bold">true</span>
+	}()
+
+	ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>)
+
+	<span style="color:#069;font-weight:bold">select</span> {
+	<span style="color:#069;font-weight:bold">case</span> <span style="color:#555">&lt;-</span>ch:
+		fmt.<span style="color:#c0f">Println</span>(<span style="color:#555">&lt;-</span>ch)
+	<span style="color:#069;font-weight:bold">case</span> <span style="color:#555">&lt;-</span>timeout:
+		fmt.<span style="color:#c0f">Println</span>(<span style="color:#c30">&#34;超时&#34;</span>)
+		<span style="color:#069;font-weight:bold">break</span>
+	}
+}
+</code></pre></div><p>取消耗时太长的同步调用，在 <code>select</code> 中通过 <code>time.After()</code> 发送的超时信号来停止协程的执行，在 <code>timeoutNs</code> 纳秒后执行 <code>select</code> 的 <code>timeout</code> 分支后，执行<code>client.Call</code> 的协程也随之结束，不会给通道 <code>ch</code> 返回值：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">error</span>, <span style="color:#f60">1</span>)
+<span style="color:#069;font-weight:bold">go</span> <span style="color:#069;font-weight:bold">func</span>() { ch <span style="color:#555">&lt;-</span> client.<span style="color:#c0f">Call</span>(<span style="color:#c30">&#34;Service.Method&#34;</span>, args, <span style="color:#555">&amp;</span>reply) } ()
+<span style="color:#069;font-weight:bold">select</span> {
+<span style="color:#069;font-weight:bold">case</span> resp <span style="color:#555">:=</span> <span style="color:#555">&lt;-</span>ch
+    <span style="color:#09f;font-style:italic">// use resp and reply
+</span><span style="color:#09f;font-style:italic"></span><span style="color:#069;font-weight:bold">case</span> <span style="color:#555">&lt;-</span>time.<span style="color:#c0f">After</span>(timeoutNs):
+    <span style="color:#09f;font-style:italic">// call timed out
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">break</span>
+}
+</code></pre></div><p>缓冲大小设置为 1 是必要的，可以避免协程死锁以及确保超时的通道可以被垃圾回收。此外，需要注意在有多个 <code>case</code> 符合条件时， <code>select</code> 对 <code>case</code> 的选择是伪随机的，协程可能不会严格按照定时器设置的时间结束：</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">ch <span style="color:#555">:=</span> <span style="color:#366">make</span>(<span style="color:#069;font-weight:bold">chan</span> <span style="color:#078;font-weight:bold">int</span>, <span style="color:#f60">1</span>)
+<span style="color:#069;font-weight:bold">go</span> <span style="color:#069;font-weight:bold">func</span>() { <span style="color:#069;font-weight:bold">for</span> { ch <span style="color:#555">&lt;-</span> <span style="color:#f60">1</span> } } ()
+L:
+<span style="color:#069;font-weight:bold">for</span> {
+    <span style="color:#069;font-weight:bold">select</span> {
+    <span style="color:#069;font-weight:bold">case</span> <span style="color:#555">&lt;-</span>ch:
+        <span style="color:#09f;font-style:italic">// do something
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">case</span> <span style="color:#555">&lt;-</span>time.<span style="color:#c0f">After</span>(timeoutNs):
+        <span style="color:#09f;font-style:italic">// call timed out
+</span><span style="color:#09f;font-style:italic"></span>        <span style="color:#069;font-weight:bold">break</span> L
+    }
+}
+</code></pre></div><p>正在执行的协程可以总是可以使用 <code>runtime.Goexit()</code> 来停止。可以用计时器功能周期性地缓存数据到内存，而不必每次都去数据库取数据。</p>
+<blockquote>
+<p>参考资料，原文：<a href="https://github.com/unknwon/the-way-to-go_ZH_CN/blob/master/eBook/directory.md">the-way-to-go</a></p>
+</blockquote>
+
+        </div>
+        
+
+    
+
+
+<div class="post-info">
+    
+        <div class="post-date">2020-08-31</div>
+    
+    <div class="post-taxonomies">
+        
+            
+    </div>
+</div>
+
+    </article>
+
+    
+        
+    <div class="pagination post-pagination">
+        <div class="left pagination-item disabled">
+            
+        </div>
+        <div class="right pagination-item ">
+            
+                <a href="/post/docker%E5%85%A5%E9%97%A8/">Docker入门</a>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+
+        </main>
+        
+            <footer class="common-footer">
+    
+    
+
+     
+
+    <div class="common-footer-bottom">
+        <div class="copyright">
+            <p>© jiexiang, 2020<br>
+             <a target="_blank" rel="noopener noreferrer" href="https://gohugo.io/">Hugo</a>,  <a target="_blank" rel="noopener noreferrer" href="https://github.com/mitrichius/hugo-theme-anubis">Anubis</a>.
+            </p>  
+        </div> 
+
+        
+
+    
+
+
+   
+    </div>
+
+</footer>
+
+        
+    </div>
+</body>
+</html>
