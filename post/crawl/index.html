@@ -16,7 +16,7 @@
 <link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
 <link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1598867889" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1598868419" />
 <style>
 
     [data-theme="dark"] {   
@@ -48,7 +48,7 @@
 
 </style>
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1598867889" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1598868419" />
 
 
 
@@ -159,7 +159,7 @@ fetch 创建 fetch."/>
 
 	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">e</span>
 <span style="color:#000;font-weight:bold">}</span>
-</code></pre></div><p>##engine</p>
+</code></pre></div><h2 id="engine">engine</h2>
 <p>创建以下数据结构：</p>
 <div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8f5902;font-style:italic">// 请求
 </span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">type</span> <span style="color:#000">Request</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
@@ -339,8 +339,9 @@ fetch 创建 fetch."/>
 <h2 id="爬取豆瓣读书">爬取豆瓣读书</h2>
 <h3 id="分析网页">分析网页</h3>
 <p>豆瓣读书首页，域名：https://book.douban.com，首先爬取这个页面右边所有标签，再进入对应的标签详情页。</p>
-<p><!-- raw HTML omitted --></p>
-<p>标签详情页，域名：https://book.douban.com/tag/小说。爬取这个分页下所有的书籍名字。<!-- raw HTML omitted --></p>
+<p>![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.38.15.png)</p>
+<p>标签详情页，域名：https://book.douban.com/tag/小说。爬取这个分页下所有的书籍名字。</p>
+<p>![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.38.53.png)</p>
 <p>parsetag.go</p>
 <div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8f5902;font-style:italic">// 抓取标签正则
 </span><span style="color:#8f5902;font-style:italic">// &lt;a href=&#34;/tag/科普&#34; class=&#34;tag&#34;&gt;科普&lt;/a&gt;
@@ -392,7 +393,8 @@ fetch 创建 fetch."/>
 		<span style="color:#000">ParseFunc</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">parser</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseTag</span><span style="color:#000;font-weight:bold">,</span>
 	<span style="color:#000;font-weight:bold">})</span>
 <span style="color:#000;font-weight:bold">}</span>
-</code></pre></div><p>执行结果，一瞬间就把所有标签，以及标签详情页第一页的书籍名字数据拿到了。![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.43.30.png)</p>
+</code></pre></div><p>执行结果，一瞬间就把所有标签，以及标签详情页第一页的书籍名字数据拿到了。</p>
+<p>![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.43.30.png)</p>
 
         </div>
         
