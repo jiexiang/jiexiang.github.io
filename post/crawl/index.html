@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-cn" data-theme="">
+<head>
+    
+        
+<meta charset="utf-8">
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer-when-downgrade">
+
+<title>多协程爬虫 - 天府码农博客</title>
+<meta name="description" content="天府码农博客">
+
+<link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
+<link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
+
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1598867889" />
+<style>
+
+    [data-theme="dark"] {   
+        --font-color: #eee;
+--bg-color: #212121;
+
+--link-color:#599ada;
+--link-state-color:#ff5858;
+--link-state-border-color: rgba(238, 54, 54, 0.5);
+
+--thead-bg-color: #343a40;
+--table-border-color: lightgrey;
+
+--pre-color: #333;
+--pre-bg-color: #f1f1f1;
+
+--bq-color: #ccc;
+--hr-color: #333;
+
+--pagination-bg-color: #373737;
+--pagination-link-color: #b6b6b6;
+
+--post-info-color: grey;
+
+--switcher-color: #333;
+--switcher-bg-color: #fff;
+
+    }
+
+</style>
+
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1598867889" />
+
+
+
+
+
+<meta property="og:title" content="多协程爬虫" />
+<meta property="og:description" content="这篇文章是上一篇文章的一次实战。开启多个协程的爬虫，可以快速地爬取网页信息。
+fetch 创建 fetch." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jiexiang.github.io/post/crawl/" />
+<meta property="article:published_time" content="2020-08-31T16:37:35+08:00" />
+<meta property="article:modified_time" content="2020-08-31T16:37:35+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="多协程爬虫"/>
+<meta name="twitter:description" content="这篇文章是上一篇文章的一次实战。开启多个协程的爬虫，可以快速地爬取网页信息。
+fetch 创建 fetch."/>
+
+
+
+
+
+
+
+
+    
+</head>
+<body>
+    <a class="skip-main" href="#main"></a>
+    <div class="container">
+        <header class="common-header"> 
+            
+                <h1 class="site-title">
+    <a href="/">天府码农博客</a>
+</h1>
+
+    <nav>
+        
+        
+        <a class="" href="https://jiexiang.github.io/posts/" title="">归档</a>
+        
+    </nav>
+
+
+            
+        </header>
+        <main id="main" tabindex="-1"> 
+            
+    
+    
+    <article class="post">
+        <header class="post-header">
+            <h1 class="post-title">多协程爬虫</h1>
+        </header>
+        <div class="content">
+            <p>这篇文章是上一篇文章的一次实战。开启多个协程的爬虫，可以快速地爬取网页信息。</p>
+<h2 id="fetch">fetch</h2>
+<p>创建 fetch.go，<code>Fetch</code>函数用于解析 url，得到网页数据。<code>determineEncoding</code>函数用于解码网页。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000;font-weight:bold">(</span>
+	<span style="color:#4e9a06">&#34;bufio&#34;</span>
+	<span style="color:#4e9a06">&#34;errors&#34;</span>
+	<span style="color:#4e9a06">&#34;fmt&#34;</span>
+	<span style="color:#4e9a06">&#34;golang.org/x/net/html/charset&#34;</span>
+	<span style="color:#4e9a06">&#34;golang.org/x/text/encoding&#34;</span>
+	<span style="color:#4e9a06">&#34;golang.org/x/text/encoding/unicode&#34;</span>
+	<span style="color:#4e9a06">&#34;golang.org/x/text/transform&#34;</span>
+	<span style="color:#4e9a06">&#34;io/ioutil&#34;</span>
+	<span style="color:#4e9a06">&#34;net/http&#34;</span>
+<span style="color:#000;font-weight:bold">)</span>
+
+<span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">Fetch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">url</span> <span style="color:#204a87;font-weight:bold">string</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">bytes</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">byte</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span> <span style="color:#204a87;font-weight:bold">error</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">client</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span><span style="color:#000">http</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Client</span><span style="color:#000;font-weight:bold">{}</span>
+	<span style="color:#000">req</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">http</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">NewRequest</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;GET&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">url</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">nil</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">!=</span> <span style="color:#204a87;font-weight:bold">nil</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;http.NewRequest error&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">return</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#000">req</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Header</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Set</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;User-Agent&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#34;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36&#34;</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">resp</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">client</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Do</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">req</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">!=</span> <span style="color:#204a87;font-weight:bold">nil</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;client.Do error&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">return</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#204a87;font-weight:bold">defer</span> <span style="color:#000">resp</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Body</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Close</span><span style="color:#000;font-weight:bold">()</span>
+
+	<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">resp</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">StatusCode</span> <span style="color:#ce5c00;font-weight:bold">!=</span> <span style="color:#000">http</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">StatusOK</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Error status code: %d\n&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">resp</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">StatusCode</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#000">err</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#000">errors</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">New</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;httpStatusError: &#34;</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">return</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#000">bodyReader</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">bufio</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">NewReader</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">resp</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Body</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">e</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">determineEncoding</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">bodyReader</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">utf8Reader</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">transform</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">NewReader</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">bodyReader</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">e</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">NewDecoder</span><span style="color:#000;font-weight:bold">())</span>
+
+	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">ioutil</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ReadAll</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">utf8Reader</span><span style="color:#000;font-weight:bold">)</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">determineEncoding</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">r</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">bufio</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Reader</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">encoding</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Encoding</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">bytes</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">r</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Peek</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1024</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">!=</span> <span style="color:#204a87;font-weight:bold">nil</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;bufio.Reader.peek error&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">unicode</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">UTF8</span>
+	<span style="color:#000;font-weight:bold">}</span>
+	<span style="color:#000">e</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">_</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">charset</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">DetermineEncoding</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">bytes</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#34;&#34;</span><span style="color:#000;font-weight:bold">)</span>
+
+	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">e</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><p>##engine</p>
+<p>创建以下数据结构：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8f5902;font-style:italic">// 请求
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">type</span> <span style="color:#000">Request</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 请求地址
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Url</span> <span style="color:#204a87;font-weight:bold">string</span>
+	<span style="color:#8f5902;font-style:italic">// 解析方式（针对不同的网页，有不同的解析方式，这里把 ParseFunc 类型定义为函数）
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">ParseFunc</span> <span style="color:#204a87;font-weight:bold">func</span><span style="color:#000;font-weight:bold">([]</span><span style="color:#204a87;font-weight:bold">byte</span><span style="color:#000;font-weight:bold">)</span><span style="color:#000">ParseResult</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 结果解析
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">type</span> <span style="color:#000">ParseResult</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 解析得到的结果
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Items</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">interface</span><span style="color:#000;font-weight:bold">{}</span>
+  <span style="color:#8f5902;font-style:italic">// 下一组请求（解析完一个网页，紧接着会根据这个网页的数据，解析下一个网页，请求是一个接着一个...）
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Requests</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#000">Request</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 定义调度器
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">type</span> <span style="color:#000">Scheduler</span> <span style="color:#204a87;font-weight:bold">interface</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 提交请求任务
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Submit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#8f5902;font-style:italic">// 工人空闲/待命
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">WorkReady</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#8f5902;font-style:italic">// 创建工人
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">WorkChan</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">Request</span>
+	<span style="color:#8f5902;font-style:italic">// 运行调度器
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Run</span><span style="color:#000;font-weight:bold">()</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><h2 id="queuescheduler">QueueScheduler</h2>
+<p>创建队列调度器，满足<code>Scheduler</code>调度器接口。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8f5902;font-style:italic">// 队列调度器
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">type</span> <span style="color:#000">QueueScheduler</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">requestChan</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span>
+	<span style="color:#000">workerChan</span>  <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 提交请求任务
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">QueueScheduler</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">Submit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">r</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">s</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">requestChan</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span> <span style="color:#000">r</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 工人空闲/待命
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">QueueScheduler</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">WorkReady</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">w</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">s</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">workerChan</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span> <span style="color:#000">w</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 创建工人
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">QueueScheduler</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">WorkChan</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#204a87">make</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 运行调度器
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">QueueScheduler</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">Run</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 初始化成员
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">s</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">requestChan</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">make</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">s</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">workerChan</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">make</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span>
+
+  <span style="color:#8f5902;font-style:italic">// 开启一个新的协程
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">go</span> <span style="color:#000">work</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span><span style="color:#000;font-weight:bold">)</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">work</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">s</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">QueueScheduler</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 分别为[任务，工人]创建数组
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">var</span> <span style="color:#000">requestQ</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span>
+	<span style="color:#204a87;font-weight:bold">var</span> <span style="color:#000">workerQ</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span>
+
+  <span style="color:#8f5902;font-style:italic">// 进入死循环
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#8f5902;font-style:italic">// 当前可用的[任务，工人]
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#204a87;font-weight:bold">var</span> <span style="color:#000">currentRequest</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span>
+		<span style="color:#204a87;font-weight:bold">var</span> <span style="color:#000">currentWorker</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span>
+
+		<span style="color:#8f5902;font-style:italic">// 如果两个数组同时能取出值
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">requestQ</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">&gt;</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">workerQ</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">&gt;</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#000;font-weight:bold">{</span>
+			<span style="color:#000">currentRequest</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#000">requestQ</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">]</span>
+			<span style="color:#000">currentWorker</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#000">workerQ</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">]</span>
+		<span style="color:#000;font-weight:bold">}</span>
+
+		<span style="color:#204a87;font-weight:bold">select</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#8f5902;font-style:italic">// 当调度器收到请求，则加入请求数组
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#8f5902;font-style:italic">// 当调度器收到空闲工人，则加入工人数组
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#8f5902;font-style:italic">// 当[任务，工人]成对，则从数组取出，并把请求任务传递给工人
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#204a87;font-weight:bold">case</span> <span style="color:#000">r</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span><span style="color:#000">s</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">requestChan</span><span style="color:#000;font-weight:bold">:</span>
+			<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;收到请求&#34;</span><span style="color:#000;font-weight:bold">)</span>
+			<span style="color:#000">requestQ</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">requestQ</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">r</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">case</span> <span style="color:#000">w</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span><span style="color:#000">s</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">workerChan</span><span style="color:#000;font-weight:bold">:</span>
+			<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;收到闲置工人&#34;</span><span style="color:#000;font-weight:bold">)</span>
+			<span style="color:#000">workerQ</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">workerQ</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">w</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">case</span> <span style="color:#000">currentWorker</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span> <span style="color:#000">currentRequest</span><span style="color:#000;font-weight:bold">:</span>
+			<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;[任务工人]成对，当前任务数：%d, 当前工人量: %d\n&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">requestQ</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#204a87">len</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">workerQ</span><span style="color:#000;font-weight:bold">))</span>
+			<span style="color:#000">requestQ</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#000">requestQ</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">:]</span>
+			<span style="color:#000">workerQ</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#000">workerQ</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">:]</span>
+		<span style="color:#000;font-weight:bold">}</span>
+	<span style="color:#000;font-weight:bold">}</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><h2 id="concurrentengine">ConcurrentEngine</h2>
+<p>创建一个并发引擎：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#204a87;font-weight:bold">type</span> <span style="color:#000">ConcurrentEngine</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 调度器
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Sch</span> <span style="color:#000">Scheduler</span>
+	<span style="color:#8f5902;font-style:italic">// 工人数（初始化这个引擎的时候，就设置好爬虫的协程数量）
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">WorkerCount</span> <span style="color:#204a87;font-weight:bold">int</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 外部通过调用 Run 方法启动引擎，会传入一些初始的任务
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">engine</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ConcurrentEngine</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">Run</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">requests</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#8f5902;font-style:italic">// 让调度器工作起来
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Sch</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Run</span><span style="color:#000;font-weight:bold">()</span>
+
+	<span style="color:#8f5902;font-style:italic">// 结果返回通道
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">out</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87">make</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">ParseResult</span><span style="color:#000;font-weight:bold">)</span>
+
+	<span style="color:#8f5902;font-style:italic">// 把任务提交到调度器
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">r</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87;font-weight:bold">range</span> <span style="color:#000">requests</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Sch</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Submit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">r</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#8f5902;font-style:italic">// 创建对应数量的工人
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#000">i</span> <span style="color:#000;font-weight:bold">&lt;</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">WorkerCount</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#000;font-weight:bold">{</span>
+    <span style="color:#8f5902;font-style:italic">// 根据 WorkerCount 变量，创建一定数量的工人，每一个工人都对应一个新的协程
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#204a87;font-weight:bold">go</span> <span style="color:#000">CreateWorker</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Sch</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">out</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#8f5902;font-style:italic">// 从 out 通道中取值
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span><span style="color:#000">out</span>
+
+		<span style="color:#8f5902;font-style:italic">// 请求结果
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Println</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Items</span><span style="color:#000;font-weight:bold">)</span>
+
+    <span style="color:#8f5902;font-style:italic">// 从请求结果中，创建下一次请求
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">r</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87;font-weight:bold">range</span> <span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Requests</span> <span style="color:#000;font-weight:bold">{</span>
+			<span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Sch</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Submit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">r</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#000;font-weight:bold">}</span>
+	<span style="color:#000;font-weight:bold">}</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 创建工人
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">CreateWorker</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sch</span> <span style="color:#000">Scheduler</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">out</span> <span style="color:#204a87;font-weight:bold">chan</span> <span style="color:#000">ParseResult</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">in</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">sch</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">WorkChan</span><span style="color:#000;font-weight:bold">()</span>
+	<span style="color:#8f5902;font-style:italic">// 每个工人会在自己的协程里一直干活，所以用 for 包裹。
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#8f5902;font-style:italic">// 工人准备完毕
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">sch</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">WorkReady</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">in</span><span style="color:#000;font-weight:bold">)</span>
+
+    <span style="color:#8f5902;font-style:italic">/*
+</span><span style="color:#8f5902;font-style:italic">    		代码运行到这里，如果调度器一直没有收到请求任务，就会一直阻塞。
+</span><span style="color:#8f5902;font-style:italic">    		当调度器收到请求任务，[工人/任务 同时具备]，worker &lt;- request
+</span><span style="color:#8f5902;font-style:italic">    		则会执行以下代码
+</span><span style="color:#8f5902;font-style:italic">    */</span>
+		<span style="color:#000">request</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span><span style="color:#000">in</span>
+
+		<span style="color:#8f5902;font-style:italic">// 执行具体任务
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">result</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">work</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">request</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">!=</span> <span style="color:#204a87;font-weight:bold">nil</span> <span style="color:#000;font-weight:bold">{</span>
+			<span style="color:#204a87;font-weight:bold">continue</span>
+		<span style="color:#000;font-weight:bold">}</span>
+
+		<span style="color:#8f5902;font-style:italic">// 执行结果传入 out，外界通过从 out 取值，拿到解析结果
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">out</span> <span style="color:#ce5c00;font-weight:bold">&lt;-</span> <span style="color:#000">result</span>
+	<span style="color:#000;font-weight:bold">}</span>
+<span style="color:#000;font-weight:bold">}</span>
+
+<span style="color:#8f5902;font-style:italic">// 具体的工作细节，爬取信息，把结果返回
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">work</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">r</span> <span style="color:#000">Request</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">ParseResult</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">error</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Fetch url:%s\n&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">r</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Url</span><span style="color:#000;font-weight:bold">)</span>
+
+	<span style="color:#000">body</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">fetcher</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Fetch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">r</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Url</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#204a87;font-weight:bold">if</span> <span style="color:#000">err</span> <span style="color:#ce5c00;font-weight:bold">!=</span> <span style="color:#204a87;font-weight:bold">nil</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Fetch Error: %s\n&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">r</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Url</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">ParseResult</span><span style="color:#000;font-weight:bold">{},</span> <span style="color:#000">err</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">r</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseFunc</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">body</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#204a87;font-weight:bold">nil</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><p>以上，就是这个多线程爬虫的核心代码。接着实战，爬取豆瓣读书的书本信息。</p>
+<h2 id="爬取豆瓣读书">爬取豆瓣读书</h2>
+<h3 id="分析网页">分析网页</h3>
+<p>豆瓣读书首页，域名：https://book.douban.com，首先爬取这个页面右边所有标签，再进入对应的标签详情页。</p>
+<p><!-- raw HTML omitted --></p>
+<p>标签详情页，域名：https://book.douban.com/tag/小说。爬取这个分页下所有的书籍名字。<!-- raw HTML omitted --></p>
+<p>parsetag.go</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8f5902;font-style:italic">// 抓取标签正则
+</span><span style="color:#8f5902;font-style:italic">// &lt;a href=&#34;/tag/科普&#34; class=&#34;tag&#34;&gt;科普&lt;/a&gt;
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">const</span> <span style="color:#000">regexpStr</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#4e9a06">`&lt;a href=&#34;([^&#34;]+)&#34; class=&#34;tag&#34;&gt;([^&lt;]+)&lt;/a&gt;`</span>
+
+<span style="color:#8f5902;font-style:italic">// 在标签页，抓取所有标签
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">ParseTag</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">content</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">byte</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseResult</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">re</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">regexp</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">MustCompile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">regexpStr</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">matches</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">re</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">FindAllSubmatch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">content</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseResult</span><span style="color:#000;font-weight:bold">{}</span>
+	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">m</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87;font-weight:bold">range</span> <span style="color:#000">matches</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Items</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Items</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">string</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">m</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">]))</span>
+		<span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Requests</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Requests</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">{</span>
+			<span style="color:#8f5902;font-style:italic">// 根据标签，打开详情，如：https://book.douban.com/tag/小说
+</span><span style="color:#8f5902;font-style:italic"></span>			<span style="color:#000">Url</span><span style="color:#000;font-weight:bold">:</span>       <span style="color:#4e9a06">&#34;https://book.douban.com&#34;</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#204a87">string</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">m</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]),</span>
+			<span style="color:#000">ParseFunc</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">ParseBookList</span><span style="color:#000;font-weight:bold">,</span>
+		<span style="color:#000;font-weight:bold">})</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">result</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><p>booklist.go</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8f5902;font-style:italic">// 抓取书籍信息
+</span><span style="color:#8f5902;font-style:italic"></span><span style="color:#204a87;font-weight:bold">const</span> <span style="color:#000">BooklistRe</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#4e9a06">`&lt;a.*?href=&#34;([^&#34;]+)&#34; title=&#34;([^&#34;]+)&#34;`</span>
+
+<span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">ParseBookList</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">contents</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">byte</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseResult</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">re</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">regexp</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">MustCompile</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">BooklistRe</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">matches</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">re</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">FindAllSubmatch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">contents</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span>
+	<span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseResult</span><span style="color:#000;font-weight:bold">{}</span>
+	<span style="color:#204a87;font-weight:bold">for</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">m</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87;font-weight:bold">range</span> <span style="color:#000">matches</span> <span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">bookname</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87">string</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">m</span><span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">])</span>
+		<span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Items</span> <span style="color:#000;font-weight:bold">=</span> <span style="color:#204a87">append</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Items</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">bookname</span><span style="color:#000;font-weight:bold">)</span>
+		<span style="color:#8f5902;font-style:italic">// 这里就不再给 result.Requests 赋值，爬取任务就此结束
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#8f5902;font-style:italic">// result.Requests = ...
+</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">result</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><p>接着在<code>main.go</code>，开启这个爬虫任务：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#204a87;font-weight:bold">func</span> <span style="color:#000">main</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
+	<span style="color:#000">e</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ConcurrentEngine</span><span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">Sch</span><span style="color:#000;font-weight:bold">:</span>         <span style="color:#ce5c00;font-weight:bold">&amp;</span><span style="color:#000">scheduler</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">QueueScheduler</span><span style="color:#000;font-weight:bold">{},</span>
+		<span style="color:#8f5902;font-style:italic">// 开启 100 个协程
+</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">WorkerCount</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">,</span>
+	<span style="color:#000;font-weight:bold">}</span>
+
+	<span style="color:#000">e</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Run</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">engine</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">Request</span><span style="color:#000;font-weight:bold">{</span>
+		<span style="color:#000">Url</span><span style="color:#000;font-weight:bold">:</span>       <span style="color:#4e9a06">&#34;https://book.douban.com/&#34;</span><span style="color:#000;font-weight:bold">,</span>
+		<span style="color:#000">ParseFunc</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">parser</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">ParseTag</span><span style="color:#000;font-weight:bold">,</span>
+	<span style="color:#000;font-weight:bold">})</span>
+<span style="color:#000;font-weight:bold">}</span>
+</code></pre></div><p>执行结果，一瞬间就把所有标签，以及标签详情页第一页的书籍名字数据拿到了。![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.43.30.png)</p>
+
+        </div>
+        
+
+    
+
+
+<div class="post-info">
+    
+        <div class="post-date">2020-08-31</div>
+    
+    <div class="post-taxonomies">
+        
+            
+    </div>
+</div>
+
+    </article>
+
+    
+        
+    <div class="pagination post-pagination">
+        <div class="left pagination-item disabled">
+            
+        </div>
+        <div class="right pagination-item ">
+            
+                <a href="/post/channel/">Go 协程基础</a>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+
+        </main>
+        
+            <footer class="common-footer">
+    
+    
+
+     
+
+    <div class="common-footer-bottom">
+        <div class="copyright">
+            <p>© jiexiang, 2020<br>
+             <a target="_blank" rel="noopener noreferrer" href="https://gohugo.io/">Hugo</a>,  <a target="_blank" rel="noopener noreferrer" href="https://github.com/mitrichius/hugo-theme-anubis">Anubis</a>.
+            </p>  
+        </div> 
+
+        
+
+    
+
+
+   
+    </div>
+
+</footer>
+
+        
+    </div>
+</body>
+</html>
