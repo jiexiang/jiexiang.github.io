@@ -607,7 +607,8 @@
       <pubDate>Sat, 29 Aug 2020 18:41:36 +0800</pubDate>
       
       <guid>https://jiexiang.github.io/post/docker%E5%85%A5%E9%97%A8.html</guid>
-      <description>&lt;h2 id=&#34;名词解释&#34;&gt;名词解释&lt;/h2&gt;
+      <description>&lt;p&gt;&lt;img src=&#34;docker-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;名词解释&#34;&gt;名词解释&lt;/h2&gt;
 &lt;h3 id=&#34;镜像image&#34;&gt;镜像（image）&lt;/h3&gt;
 &lt;p&gt;镜像就是一个模板，可以通过这个模板创建多个容器。镜像是一种轻量级，可执行的独立软件包，用来打包软件运行环境和基于运行环境开发的软件，它包含运行某个软件所需的所有内容：代码、运行时、库、环境变量和配置文件等。&lt;/p&gt;
 &lt;h3 id=&#34;容器container&#34;&gt;容器（container）&lt;/h3&gt;
