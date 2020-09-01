@@ -13,10 +13,10 @@
     
     <item>
       <title>多协程爬虫</title>
-      <link>https://jiexiang.github.io/post/crawl/</link>
+      <link>https://jiexiang.github.io/post/crawl.html</link>
       <pubDate>Mon, 31 Aug 2020 16:37:35 +0800</pubDate>
       
-      <guid>https://jiexiang.github.io/post/crawl/</guid>
+      <guid>https://jiexiang.github.io/post/crawl.html</guid>
       <description>&lt;p&gt;这篇文章是上一篇文章的一次实战。开启多个协程的爬虫，可以快速地爬取网页信息。&lt;/p&gt;
 &lt;h2 id=&#34;fetch&#34;&gt;fetch&lt;/h2&gt;
 &lt;p&gt;创建 fetch.go，&lt;code&gt;Fetch&lt;/code&gt;函数用于解析 url，得到网页数据。&lt;code&gt;determineEncoding&lt;/code&gt;函数用于解码网页。&lt;/p&gt;
@@ -252,9 +252,9 @@
 &lt;h2 id=&#34;爬取豆瓣读书&#34;&gt;爬取豆瓣读书&lt;/h2&gt;
 &lt;h3 id=&#34;分析网页&#34;&gt;分析网页&lt;/h3&gt;
 &lt;p&gt;豆瓣读书首页，域名：https://book.douban.com，首先爬取这个页面右边所有标签，再进入对应的标签详情页。&lt;/p&gt;
-&lt;p&gt;![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.38.15.png)&lt;/p&gt;
+&lt;p&gt;![截屏2020-08-31 下午5.38.15](./crawl.assets/截屏2020-08-31 下午5.38.15.png)&lt;/p&gt;
 &lt;p&gt;标签详情页，域名：https://book.douban.com/tag/小说。爬取这个分页下所有的书籍名字。&lt;/p&gt;
-&lt;p&gt;![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.38.53.png)&lt;/p&gt;
+&lt;p&gt;![截屏2020-08-31 下午5.38.53](./crawl.assets/截屏2020-08-31 下午5.38.53.png)&lt;/p&gt;
 &lt;p&gt;parsetag.go&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// 抓取标签正则
 &lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// &amp;lt;a href=&amp;#34;/tag/科普&amp;#34; class=&amp;#34;tag&amp;#34;&amp;gt;科普&amp;lt;/a&amp;gt;
@@ -307,16 +307,16 @@
 	&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;})&lt;/span&gt;
 &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行结果，一瞬间就把所有标签，以及标签详情页第一页的书籍名字数据拿到了。&lt;/p&gt;
-&lt;p&gt;![截屏2020-08-31 下午5.43.30](/crawl.assets/截屏2020-08-31 下午5.43.30.png)&lt;/p&gt;
+&lt;p&gt;![截屏2020-08-31 下午5.43.30](./crawl.assets/截屏2020-08-31 下午5.43.30.png)&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Go 协程基础</title>
-      <link>https://jiexiang.github.io/post/channel/</link>
+      <link>https://jiexiang.github.io/post/channel.html</link>
       <pubDate>Mon, 31 Aug 2020 15:40:56 +0800</pubDate>
       
-      <guid>https://jiexiang.github.io/post/channel/</guid>
+      <guid>https://jiexiang.github.io/post/channel.html</guid>
       <description>&lt;h2 id=&#34;基本概念&#34;&gt;基本概念&lt;/h2&gt;
 &lt;p&gt;一个&lt;strong&gt;应用程序&lt;/strong&gt;是运行在机器上的一个&lt;strong&gt;进程&lt;/strong&gt;，进程是一个运行在自己内存地址空间里的独立执行体。一个进程由一个或多个操作系统&lt;strong&gt;线程&lt;/strong&gt;组成，这些线程其实是共享同一个内存地址空间的一起工作的执行体。几乎所有的程序都是多线程的。这样的好处是同时服务多个请求、增加性能、吞吐量。&lt;/p&gt;
 &lt;p&gt;一个&lt;strong&gt;并发程序&lt;/strong&gt;可以在一个处理器或者内核上使用&lt;strong&gt;多个线程&lt;/strong&gt;来执行任务，但是只有&lt;strong&gt;同一个程序&lt;/strong&gt;在某个时间点&lt;strong&gt;同时&lt;/strong&gt;运行在&lt;strong&gt;多核&lt;/strong&gt;或者&lt;strong&gt;多处理器&lt;/strong&gt;上才是真正的&lt;strong&gt;并行&lt;/strong&gt;。&lt;strong&gt;并行&lt;/strong&gt;是一种通过使用多处理器以提高速度的能力。所以并发程序可以是并行的，也可以不是。&lt;/p&gt;
@@ -603,10 +603,10 @@
     
     <item>
       <title>Docker入门</title>
-      <link>https://jiexiang.github.io/post/docker%E5%85%A5%E9%97%A8/</link>
+      <link>https://jiexiang.github.io/post/docker%E5%85%A5%E9%97%A8.html</link>
       <pubDate>Sat, 29 Aug 2020 18:41:36 +0800</pubDate>
       
-      <guid>https://jiexiang.github.io/post/docker%E5%85%A5%E9%97%A8/</guid>
+      <guid>https://jiexiang.github.io/post/docker%E5%85%A5%E9%97%A8.html</guid>
       <description>&lt;h2 id=&#34;名词解释&#34;&gt;名词解释&lt;/h2&gt;
 &lt;h3 id=&#34;镜像image&#34;&gt;镜像（image）&lt;/h3&gt;
 &lt;p&gt;镜像就是一个模板，可以通过这个模板创建多个容器。镜像是一种轻量级，可执行的独立软件包，用来打包软件运行环境和基于运行环境开发的软件，它包含运行某个软件所需的所有内容：代码、运行时、库、环境变量和配置文件等。&lt;/p&gt;
@@ -1120,19 +1120,19 @@ docker inspect &amp;lt;容器id&amp;gt;
     
     <item>
       <title></title>
-      <link>https://jiexiang.github.io/archives/</link>
+      <link>https://jiexiang.github.io/archives.html</link>
       <pubDate>Tue, 28 May 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://jiexiang.github.io/archives/</guid>
+      <guid>https://jiexiang.github.io/archives.html</guid>
       <description></description>
     </item>
     
     <item>
       <title>About</title>
-      <link>https://jiexiang.github.io/about/</link>
+      <link>https://jiexiang.github.io/about.html</link>
       <pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://jiexiang.github.io/about/</guid>
+      <guid>https://jiexiang.github.io/about.html</guid>
       <description>&lt;p&gt;Written in Go, Hugo is an open source static site generator available under the &lt;a href=&#34;https://github.com/gohugoio/hugo/blob/master/LICENSE&#34;&gt;Apache Licence 2.0.&lt;/a&gt; Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.&lt;/p&gt;
 &lt;p&gt;Hugo makes use of a variety of open source projects including:&lt;/p&gt;
 &lt;ul&gt;
@@ -1151,10 +1151,10 @@ docker inspect &amp;lt;容器id&amp;gt;
     
     <item>
       <title>Subpage</title>
-      <link>https://jiexiang.github.io/about/subpage/</link>
+      <link>https://jiexiang.github.io/about/subpage.html</link>
       <pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://jiexiang.github.io/about/subpage/</guid>
+      <guid>https://jiexiang.github.io/about/subpage.html</guid>
       <description>&lt;p&gt;Just a subpage of About.&lt;/p&gt;
 </description>
     </item>

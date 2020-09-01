@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on 天府码农博客</title>
-    <link>https://jiexiang.github.io/categories/</link>
+    <link>https://jiexiang.github.io/categories.html</link>
     <description>天府码农博客 (Categories)</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
