@@ -6,10 +6,665 @@
     <description>天府码农博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 31 Aug 2020 16:37:35 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 01 Sep 2020 13:43:41 +0800</lastBuildDate>
     
     <atom:link href="https://jiexiang.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Redis 入门笔记</title>
+      <link>https://jiexiang.github.io/post/redis.html</link>
+      <pubDate>Tue, 01 Sep 2020 13:43:41 +0800</pubDate>
+      
+      <guid>https://jiexiang.github.io/post/redis.html</guid>
+      <description>&lt;h2 id=&#34;nosql-概述&#34;&gt;Nosql 概述&lt;/h2&gt;
+&lt;h3 id=&#34;单机-mysql-年代&#34;&gt;单机 MySQL 年代&lt;/h3&gt;
+&lt;p&gt;在早年的互联网时代，一个网站的访问量不会太大，使用单个数据库完全足够。随着用户量增大，数据增大，整个网站出现瓶颈。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;数据量太大，一个服务器放不下&lt;/li&gt;
+&lt;li&gt;数据的索引，一个服务器放不下&lt;/li&gt;
+&lt;li&gt;访问量太大，一个服务器承受不了&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;缓存读写分离&#34;&gt;缓存、读写分离&lt;/h3&gt;
+&lt;p&gt;网站大多数情况下都是在读，每次都去查询数据库十分消耗性能，为了减轻服务器的压力，应该使用缓存来保证效率。&lt;/p&gt;
+&lt;p&gt;发展过程：优化数据结构和索引、文件缓存，Memcached&lt;/p&gt;
+&lt;h3 id=&#34;分库分表水平拆分mysql-集群&#34;&gt;分库分表、水平拆分、MySQL 集群&lt;/h3&gt;
+&lt;p&gt;早年发展历程：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;早年 MyISAM：表锁，十分影响效率&lt;/li&gt;
+&lt;li&gt;Innodb：行锁&lt;/li&gt;
+&lt;li&gt;MySQL 表分区&lt;/li&gt;
+&lt;li&gt;MySQL 集群&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;如今互联网产品的用户数量、用户信息、社交网络等等爆发式增长，迫切需要新的技术来支撑如今的互联网产品。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;3V + 3高&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;3V&lt;/th&gt;
+&lt;th&gt;3高&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;海量 Volume&lt;/td&gt;
+&lt;td&gt;高并发&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;多样 Variety&lt;/td&gt;
+&lt;td&gt;高可扩&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;实时 Velocity&lt;/td&gt;
+&lt;td&gt;高性能&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;什么是-nosql&#34;&gt;什么是 NoSQL&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;NoSQL = Not only SQL&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;泛指非关系型数据库。NoSQL 存储数据不再是像 MySQL 等关系型数据库一样，需要固定的格式。NoSQL 在当前大数据环境下发展十分迅速，其中 Redis 发展最快。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;特点&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;数据之间没有关系，方便扩展&lt;/li&gt;
+&lt;li&gt;大数据量，高性能&lt;/li&gt;
+&lt;li&gt;数据类型多样&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;对比传统的 RDBMS：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;Nosql&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;RDBMS&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;没有固定的查询语言&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;SQL&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;键值对存储、列存储、文档存储&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;结构化组织&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;可性能，高可用，高可扩&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;基础的事务&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;不仅仅是数据&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;数据和关系都单独存在表中&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;redis-入门&#34;&gt;Redis 入门&lt;/h2&gt;
+&lt;p&gt;Redis（Remote Dictionary Server），远程字典服务。使用 C 语言编写、单线程、开源、支持网络、基于内存亦可持久化的日志型、KV 数据库，提供多种编程语言的 API。&lt;/p&gt;
+&lt;p&gt;redis 会周期性地把更新的数据写入磁盘，或者把修改操作写入追加的记录文件，并且在此基础上实现主从（master-slave）同步。&lt;/p&gt;
+&lt;h3 id=&#34;linux-下安装&#34;&gt;Linux 下安装&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://redis.io/&#34;&gt;官网&lt;/a&gt;下载最新版的 redis 压缩包，解压到&lt;code&gt;/opt&lt;/code&gt;目录。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;进入解压后的文件夹，执行命令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 安装 gcc 最新版&lt;/span&gt;
+yum install gcc-c++
+   
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看当前版本&lt;/span&gt;
+gcc -v &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 4.8.5&lt;/span&gt;
+   
+yum -y install centos-release-scl
+yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
+scl &lt;span style=&#34;color:#204a87&#34;&gt;enable&lt;/span&gt; devtoolset-9 bash
+   
+gcc -v &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 9.3.1&lt;/span&gt;
+   
+make
+make install
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;redis 默认安装路径：&lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在&lt;code&gt;/usr/local/bin&lt;/code&gt;下，创建一个文件夹&lt;code&gt;jconfig&lt;/code&gt;用来存放 redis 的配置文件。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;把&lt;code&gt;/opt&lt;/code&gt;下的 redis 安装目录里面的&lt;code&gt;redis.conf&lt;/code&gt;文件复制过来。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;打开配置文件，设置后台启动：修改&lt;code&gt;daemonize yes&lt;/code&gt;。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;启动和连接&#34;&gt;启动和连接&lt;/h3&gt;
+&lt;p&gt;启动&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;redis-server jconfig/redis.conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;连接&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;redis-cli -p &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;6379&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看进程&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;ps -ef&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;|&lt;/span&gt;grep redis
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;基础知识&#34;&gt;基础知识&lt;/h3&gt;
+&lt;p&gt;默认有 16 个数据库，默认使用第 0 个：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;databases &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;16&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;切换数据库：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;select&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;3&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看数据库大小：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;dbsize
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看数据库中所有的 key：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;keys *
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;清空当前数据库：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;flushdb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;清空全部数据库：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;flushall
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 判断当前的 key 是否存在&lt;/span&gt;
+EXISTS name
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除当前的 key&lt;/span&gt;
+move name &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设置 key 的过期时间，单位是秒&lt;/span&gt;
+EXPIRE name &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10&lt;/span&gt; 
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看剩余时间&lt;/span&gt;
+ttl name
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看当前 key 类型&lt;/span&gt;
+&lt;span style=&#34;color:#204a87&#34;&gt;type&lt;/span&gt; name
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;redis-五大基本数据类型&#34;&gt;redis 五大基本数据类型&lt;/h2&gt;
+&lt;h3 id=&#34;string&#34;&gt;string&lt;/h3&gt;
+&lt;p&gt;使用场景：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;计数器&lt;/li&gt;
+&lt;li&gt;统计多单位的数量&lt;/li&gt;
+&lt;li&gt;浏览数、粉丝数等等&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;值是字符串的情况&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设值&lt;/span&gt;
+&lt;span style=&#34;color:#204a87&#34;&gt;set&lt;/span&gt; k1 v1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取&lt;/span&gt;
+get k1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 追加（如果 key 不存在，相当于 set）&lt;/span&gt;
+append k1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 字符串长度&lt;/span&gt;
+strlen k1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;字符串范围&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 截取字符串 k1[0:3]&lt;/span&gt;
+getrange k1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;3&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取全部字符串&lt;/span&gt;
+getrange k1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; -1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从字符串的位置 1 开始替换字符串&lt;/span&gt;
+setrange k1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt; xx
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;过期&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 30 秒后过期&lt;/span&gt;
+setex k1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;30&lt;/span&gt; xxx
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 k1 不存在，则创建&lt;/span&gt;
+setnx k1 xx
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# msetnx 是一个原子性操作，要么一起成功，要么一起失败&lt;/span&gt;
+msetnx k1 v1 k2 v2
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;同时设置多个&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;mset k1 v1 k2 v2 ...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;同时获取多个&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;mget k1 k2 k3 ...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;先 get 再 set&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 db 原本不存在，则返回值为 nil&lt;/span&gt;
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 db 原本存在，则返回 db 旧值，再设置新值&lt;/span&gt;
+getset db redis
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;值是数字的情况&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#204a87&#34;&gt;set&lt;/span&gt; views &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 自增 1&lt;/span&gt;
+incr views
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 自减 1&lt;/span&gt;
+decr views
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# +10&lt;/span&gt;
+incrby views &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# -10&lt;/span&gt;
+decrby views &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;list&#34;&gt;list&lt;/h3&gt;
+&lt;p&gt;可以用 list 来实现栈、队列、消息队列，阻塞队列。可以把 list 看做一个横向排列的数组，可以从左右操作里面的元素。&lt;/p&gt;
+&lt;p&gt;增加元素：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从左边加入元素&lt;/span&gt;
+lpush list a
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从右边加入元素&lt;/span&gt;
+rpush list b
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 以下标设置值&lt;/span&gt;
+lset list &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; item
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 在 &amp;lt;vlaue&amp;gt; 的前面或者后面，插入 &amp;lt;newValue&amp;gt;&lt;/span&gt;
+linsert list before/after &amp;lt;vlaue&amp;gt; &amp;lt;newValue&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;移除元素：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除左边的元素&lt;/span&gt;
+lpop list
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除右边的元素&lt;/span&gt;
+rpop list
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除指定的元素&lt;/span&gt;
+lrem list &amp;lt;数量&amp;gt; xxx
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从 list 中移除最后一个元素，并加入 otherlist&lt;/span&gt;
+rpoplpush list otherlist
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其他操作：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 判断列表是否存在&lt;/span&gt;
+exists list
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取 list 全部值&lt;/span&gt;
+lrange list &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; -1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 通过下标取值&lt;/span&gt;
+lindex list &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取 list 长度&lt;/span&gt;
+llen list
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 截取元素&lt;/span&gt;
+ltrim list &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;[&lt;/span&gt;start:end&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
+&lt;p&gt;set 集合中的值不能重复。&lt;/p&gt;
+&lt;p&gt;设置元素：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;sadd myset a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;移除元素：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除指定元素&lt;/span&gt;
+srem myset a
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 随机移除一个元素&lt;/span&gt;
+spop myset
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从 myset 中移除 a 到 myset2&lt;/span&gt;
+smove myset myset2 a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其他操作：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看集合中所有的值&lt;/span&gt;
+smembers myset
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 判断一个值在不在集合中&lt;/span&gt;
+sismember myset a
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取集合中元素的个数&lt;/span&gt;
+scard myset
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 随机抽取指定个数的元素&lt;/span&gt;
+srandmember myset &amp;lt;个数&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;交并差：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 差集&lt;/span&gt;
+sdiff myset1 myset2
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 交集&lt;/span&gt;
+sinter myset1 myset2
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 并集&lt;/span&gt;
+sunion myset1 myset2
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;hash&#34;&gt;hash&lt;/h3&gt;
+&lt;p&gt;hash 适合对象的存储，尤其是用户信息之类的，可能会经常变更的数据。&lt;/p&gt;
+&lt;p&gt;单个 key-value：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设置&lt;/span&gt;
+hset hs k1 v1
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取&lt;/span&gt;
+hget hs k1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;多个 key-value：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 同时设置多个 k-v&lt;/span&gt;
+hmset hs k1 v1 k2 v2
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取指定的 key&lt;/span&gt;
+hmget hs k1
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取所有的 k-v&lt;/span&gt;
+hgetall hs
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;删除：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 删除指定的 key&lt;/span&gt;
+hdel hs k1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其他操作：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取 key 数量&lt;/span&gt;
+hlen hs
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 判断指定 key 是否存在&lt;/span&gt;
+hexists hs k1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取所有 key&lt;/span&gt;
+hkeys hs
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取所有 value&lt;/span&gt;
+hvals hs
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 k1 不存在，才设值&lt;/span&gt;
+hsetnx hs k1 v1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设置增量：k1 + 1&lt;/span&gt;
+hincrby hs k1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;zset&#34;&gt;zset&lt;/h3&gt;
+&lt;p&gt;zset 为有序集合，在 set 的基础上，增加了一个值。排行榜、成绩、工资排序，消息带权重等判断。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设置一个值&lt;/span&gt;
+zadd myset &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt; one
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设置多个值&lt;/span&gt;
+zadd money &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;500&lt;/span&gt; zhangsan &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;200&lt;/span&gt; lisi &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;900&lt;/span&gt; wangwu
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从小到大列出所有元素&lt;/span&gt;
+zrange money &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; -1
+ZRANGEBYSCORE money -inf +inf
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 从小到大列出所有元素，并附带值&lt;/span&gt;
+ZRANGEBYSCORE money -inf +inf withscores
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除指定元素&lt;/span&gt;
+zrem money zhangsan
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取值在此区间范围的元素个数&lt;/span&gt;
+zcount money &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;100&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;600&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;redis-三种特殊数据类型&#34;&gt;redis 三种特殊数据类型&lt;/h2&gt;
+&lt;h3 id=&#34;geopatial-地理位置&#34;&gt;Geopatial 地理位置&lt;/h3&gt;
+&lt;p&gt;实现定位、附近的人，打车距离计算等需求。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 添加一个位置&lt;/span&gt;
+geoadd china:city 116.4 39.9 beijing
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取一个位置&lt;/span&gt;
+getpos china:city beijing
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 计算两地距离&lt;/span&gt;
+geodist china:city beijing shanghai km
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 找出位于指定元素周围的其他元素&lt;/span&gt;
+georadiusbymember china:city beijing &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1000&lt;/span&gt; km
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 以给定经纬度为圆心，找到半径内地点&lt;/span&gt;
+georadius china:city &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;110&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;30&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1000&lt;/span&gt; km
+georadius china:city &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;110&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;30&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1000&lt;/span&gt; km count &amp;lt;个数&amp;gt;
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# withdist（距离），withcoord （经纬）&lt;/span&gt;
+georadius china:city &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;110&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;30&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1000&lt;/span&gt; km withdist withcoord
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 返回 11 个字符的一维字符串，两个字符串约接近代表距离越近&lt;/span&gt;
+geohash china:city beijing chongqing
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 移除指定元素&lt;/span&gt;
+zrem china:city beijing
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看所有元素&lt;/span&gt;
+zrange china:city &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; -1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;hyperloglog&#34;&gt;hyperloglog&lt;/h3&gt;
+&lt;p&gt;不重复的数。使用场景：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;投票&lt;/li&gt;
+&lt;li&gt;网站访问数量&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 创建一组元素&lt;/span&gt;
+pfadd mykey a b c d a b
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 统计基数数量&lt;/span&gt;
+pfcount mykey
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 合并两组元素到 mykey&lt;/span&gt;
+pfmerge mykey mykey1 mykey2
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果可以容错，那可以使用 hyperloglog。如果不允许容错，就使用 set 或者自己的数据类型来实现。&lt;/p&gt;
+&lt;h3 id=&#34;bitmap&#34;&gt;bitmap&lt;/h3&gt;
+&lt;p&gt;统计活跃度，打卡等。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 一周的打卡&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;3&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;5&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+setbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;6&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看某天是否打卡&lt;/span&gt;
+getbit sign &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;3&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 统计打卡次数&lt;/span&gt;
+bitcount sign
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;事务&#34;&gt;事务&lt;/h2&gt;
+&lt;p&gt;redis 事务本质：一组命令的集合。redis 单条命令是原子性的，但是事务不能保证原子性。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一次性、顺序性、排他性。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 开启事务&lt;/span&gt;
+multi
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 其他命令&lt;/span&gt;
+...
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 执行事务&lt;/span&gt;
+&lt;span style=&#34;color:#204a87&#34;&gt;exec&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 取消事务&lt;/span&gt;
+discard
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;编译型异常，代码有问题或者命令错误，事务中所有的命令都不会被执行。&lt;/li&gt;
+&lt;li&gt;运行时异常，如果事务中一条命令执行失败（如对字符串 incr），其他命令可以正常执行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;锁&#34;&gt;锁&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;悲观锁：认为什么时候都会出问题，无论做什么都加锁&lt;/li&gt;
+&lt;li&gt;乐观锁：认为不会出什么问题。更新数据的时候再判断在此期间是否有人修改过数据。获取 version，更新的时候比较 version。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 取消监视&lt;/span&gt;
+unwatch money
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 监视&lt;/span&gt;
+watch money
+
+multi
+
+decrby money &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 执行之前，如果另外一个线程修改了 money 的值，这个时候就会导致事务执行失败&lt;/span&gt;
+&lt;span style=&#34;color:#204a87&#34;&gt;exec&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;redis-配置文件&#34;&gt;redis 配置文件&lt;/h2&gt;
+&lt;h3 id=&#34;网络&#34;&gt;网络&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 绑定的ip&lt;/span&gt; 
+&lt;span style=&#34;color:#204a87&#34;&gt;bind&lt;/span&gt; 127.0.0.1
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 保护模式&lt;/span&gt;
+protected-mode yes  
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 端口设置&lt;/span&gt;
+port &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;6379&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;通用&#34;&gt;通用&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 守护进程，这个需要手动开启&lt;/span&gt;
+daemonize yes
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果以后台的方式运行，我们就需要指定一个 pid 文件!&lt;/span&gt;
+pidfile /var/run/redis_6379.pid
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 日志级别&lt;/span&gt;
+loglevel notice
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 日志的文件位置名&lt;/span&gt;
+logfile &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt; 
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 数据库数量&lt;/span&gt;
+databases
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 启动 logo&lt;/span&gt;
+always-show-logo yes
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;快照&#34;&gt;快照&lt;/h3&gt;
+&lt;p&gt;快照，也就是备份。就像单机游戏里面的存档，可以恢复到存档时的状态。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 900s 内，如果至少有一个 1 key 进行了修改，redis 进行持久化操作&lt;/span&gt; 
+save &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;900&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 300s 内，如果至少 10 key 进行了修改，redis 进行持久化操作&lt;/span&gt; 
+save &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;300&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10&lt;/span&gt;
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果 60s 内，如果至少 10000 key 进行了修改，redis 进行持久化操作&lt;/span&gt; 
+save &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;60&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10000&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 持久化如果出错，是否还需要继续工作&lt;/span&gt;
+stop-writes-on-bgsave-error yes  
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 是否压缩 rdb 文件，需要消耗一些cpu资源&lt;/span&gt;
+rdbcompression yes 
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 保存rdb文件的时候，进行错误的检查校验&lt;/span&gt;
+rdbchecksum yes 
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# rdb 文件保存的目录&lt;/span&gt;
+dir ./ 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;安全&#34;&gt;安全&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 获取密码&lt;/span&gt;
+config get requirepass
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 设置密码&lt;/span&gt;
+config &lt;span style=&#34;color:#204a87&#34;&gt;set&lt;/span&gt; requirepass &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;123456&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 鉴权&lt;/span&gt;
+auth &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;123456&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;client&#34;&gt;client&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 最大客户端连接数&lt;/span&gt;
+maxclients &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;100&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 配置最大的内存容量&lt;/span&gt;
+maxmemory &amp;lt;bytes&amp;gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 内存到达上限之后的处理策略&lt;/span&gt;
+maxmemory-policy noeviction 
+1、volatile-lru:只对设置了过期时间的key进行LRU&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;默认值&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt; 
+2、allkeys-lru : 删除lru算法的key 
+3、volatile-random:随机删除即将过期key 
+4、allkeys-random:随机删除
+5、volatile-ttl : 删除即将过期的 
+6、noeviction : 永不过期，返回错误
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;aofappend-only&#34;&gt;AOF（append only）&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 默认不开启 aof 模式&lt;/span&gt;
+appendonly 
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 持久化文件名字&lt;/span&gt;
+appendfilename &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;appendonly.aof&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 每次修改都同步&lt;/span&gt;
+appendfsync always
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 每秒同步一次&lt;/span&gt;
+appendfsync everysec
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 不执行同步&lt;/span&gt;
+appendfsync no
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;redis-持久化&#34;&gt;redis 持久化&lt;/h2&gt;
+&lt;p&gt;redis 是内存数据库，如果不将内存中的数据库状态保存到磁盘，一旦服务器进程退出，服务器中的数据库状态将会消失，所以定期需要将数据持久化。&lt;/p&gt;
+&lt;h3 id=&#34;rdbredis-database&#34;&gt;RDB（Redis DataBase）&lt;/h3&gt;
+&lt;p&gt;在指定的时间间隔内，将内存中的数据集快照写入磁盘，恢复时将快照文件直接读到内存里。redis 默认就是以 rdb 方式进行持久化，rdb 快照文件叫做&lt;code&gt;dump.rdb&lt;/code&gt;，可以在配置中进行修改：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;dbfilename dump.rdb
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 触发持久化条件&lt;/span&gt;
+save &amp;lt;秒&amp;gt; &amp;lt;操作次数&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;触发机制：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;save 规则满足的情况下&lt;/li&gt;
+&lt;li&gt;执行 flushall&lt;/li&gt;
+&lt;li&gt;退出 redis&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;备份 redis 时，只需要将这个文件，放到 redis 启动目录即可，redis 启动时会自动检查 dump.rdb 并恢复其中的数据。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看 redis 目录&lt;/span&gt;
+127.0.0.1:6379&amp;gt; config get dir
+1&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;dir&amp;#34;&lt;/span&gt;
+2&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;/usr/local/bin&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 如果在这个目录下存在 dump.rdb 文件，启动就会自动恢复其中的数据&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;aofappend-only-file&#34;&gt;AOF（Append Only File）&lt;/h3&gt;
+&lt;p&gt;aof 将所有的&lt;strong&gt;写&lt;/strong&gt;的命令都记录下来，恢复的时候就把这个文件全部执行一遍。以日志的形势记录每个操作，只允许追加但不可以改写文件，redis 启动之初会读取该文件重新构建数据。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;aof 文件如果中途别恶意修改，redis 会启动不成功，这个时候需要修复 aof 文件。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;redis-check-aof --fix appendonly.aof
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;aof 默认是文件的无限追加，文件会越来越大。修复速度也比 rdb 慢。&lt;/p&gt;
+&lt;h2 id=&#34;redis-发布订阅&#34;&gt;Redis 发布订阅&lt;/h2&gt;
+&lt;p&gt;redis 发布订阅（pub/sub）是一种消息通信模式：发送者（pub）发送消息，订阅者（sub）接收消息。redis 客户端可以订阅任意数量的频道。&lt;/p&gt;
+&lt;p&gt;应用场景：网络聊天室、实时广播、实时提醒、订阅关注系统等。&lt;/p&gt;
+&lt;p&gt;订阅端：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 订阅&lt;/span&gt;
+SUBSCRIBE cctv
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;发送端：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;publish cctv &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;redis-主从复制&#34;&gt;Redis 主从复制&lt;/h2&gt;
+&lt;h3 id=&#34;概念&#34;&gt;概念&lt;/h3&gt;
+&lt;p&gt;主从复制，是将一台 redis 服务器的数据，复制到其他 redis 服务器。前者称为主节点（master），后者称为从节点（slave）。数据的复制是单向的，智能由主节点到从节点。master 以写为主，slave 以读为主。&lt;/p&gt;
+&lt;p&gt;默认情况下启动 redis 服务，每台 redis 都是主节点。一个主节点可以有多个从节点，一个从节点只能有一个主节点。&lt;/p&gt;
+&lt;p&gt;主从复制主要包括：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;数据冗余：主从复制实现了数据热备份，是持久化之外的一种冗余方式。&lt;/li&gt;
+&lt;li&gt;故障恢复：当主从节点出现问题时，可以由从节点提供服务，实现快速的故障恢复，实际上是一种服务冗余。&lt;/li&gt;
+&lt;li&gt;负载均衡：在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务（写数据时连接主节点，读数据时连接从节点）。分担服务器负载，尤其是在写少读多的场景下，通过多个从节点分担读负载，可以大大提高 redis 服务器并发量。&lt;/li&gt;
+&lt;li&gt;高可用集群：除了上述作用以外，主从复制还是哨兵和集群能够实施的基础，因此说主从复制是 redis 高可用的基础。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;单台 redis 服务器弊端：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;从结构上，单个 redis 服务器可能会发生单点故障。单个服务器要处理所有的请求负载，压力较大。&lt;/li&gt;
+&lt;li&gt;从容量上，单个 redis 服务器内存容量有限。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;环境配置&#34;&gt;环境配置&lt;/h3&gt;
+&lt;p&gt;查看环境：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 查看当前 redis 的主从信息&lt;/span&gt;
+127.0.0.1:6379&amp;gt; info replication
+
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 角色 master&lt;/span&gt;
+role:master 
+&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 没有从机&lt;/span&gt;
+connected_slaves:0 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;一般来说，主需要配置从机：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 成为 6379 的从机&lt;/span&gt;
+127.0.0.1:6380&amp;gt; SLAVEOF 127.0.0.1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;6379&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;主机断开连接，从机依旧可以连接到主机。主机如果启动了，从机依旧可以直接获取到主机的信息。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;复制原理&#34;&gt;复制原理&lt;/h3&gt;
+&lt;p&gt;Slave 连接 Master 成功后会主动发送一个 sync 同步命令。&lt;/p&gt;
+&lt;p&gt;master 接到命令，启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令。在后台进程执行完毕之后，master 将传送整个数据文件到 slave，完成一次完全同步。只要重新连接 master，一次全量复制将自动执行。&lt;/p&gt;
+&lt;p&gt;**全量复制：**slave 服务在接收到数据文件后，将其存盘并加载到内存中。&lt;/p&gt;
+&lt;p&gt;**增量复制：**master 继续将新的所有收集到的修改命令依次传给 slave，完成同步。&lt;/p&gt;
+&lt;h3 id=&#34;哨兵模式&#34;&gt;哨兵模式&lt;/h3&gt;
+&lt;p&gt;如果主机断开了连接，可以使用&lt;code&gt;slaveof no one&lt;/code&gt;让自己成为主机，其他节点需要手动连接到最新的节点，如果之前的主机恢复了，需要手动让其他从机再次连接到主机。&lt;/p&gt;
+&lt;p&gt;这样手动的方式费时费力，还会造成一段时间内服务不可用。可以使用哨兵（Sentinel）架构来解决这个问题。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;后台监控主机是否故障，如果故障了会根据投票数自动将从机转换为主机。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;哨兵是一个独立的进程，独立运行。哨兵通过发送命令，等待 redis 服务器响应，从而监控多个 redis 实例。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://jiexiang.github.io/Users/jiexiang/Desktop/tfmnblog/content/post/redis.assets/redis-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;哨兵作用：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通过发送命令，让这三台 redis 服务器返回其监控运行状态。&lt;/li&gt;
+&lt;li&gt;当哨兵检测到 master 宕机，会自动将 slave 切换成 master，然后通过&lt;strong&gt;发布订阅模式&lt;/strong&gt;通知其他服务器，修改配置文件，让他们切换主机。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;一个哨兵进程监控，可能也会出现问题。为此，可以使用多个哨兵进行监控，各个哨兵之间互相监控，形成多哨兵模式。&lt;/p&gt;
+&lt;p&gt;**主观下线：**假如主服务器宕机，哨兵A 先检测到这个情况，认为主服务器不可用，系统不会马上进行 failover 过程。&lt;/p&gt;
+&lt;p&gt;**客观下线：**当后面的哨兵也检测到主服务器不可用，并且数量达到一定值，哨兵之间会进行投票。切换主机后，通过发布订阅模式，让各个哨兵把自己监控的从服务器切换主机。&lt;/p&gt;
+&lt;h4 id=&#34;启用哨兵&#34;&gt;启用哨兵&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;修改哨兵配置文件 sentinel.conf：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;sentinel monitor myredis 127.0.0.1 &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;6379&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;启动&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;redis-sentinel jconfig/sentinel.conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;redis-缓存穿透&#34;&gt;Redis 缓存穿透&lt;/h2&gt;
+&lt;h3 id=&#34;概念-1&#34;&gt;概念&lt;/h3&gt;
+&lt;p&gt;某个请求需要查询一个数据，发现 redis 没有，也就是缓存没有命中，于是向持久层数据库查询，发现也没有，本次查询失败。当请求很多时，这会给持久层数据库造成很大压力。&lt;/p&gt;
+&lt;h3 id=&#34;布隆过滤器&#34;&gt;布隆过滤器&lt;/h3&gt;
+&lt;p&gt;布隆过滤器是一种数据结构，对所有可能查询的参数以 hash 形式存储，在控制层先进行校验，不符合则丢弃，从而减轻底层存储查询的压力。&lt;/p&gt;
+&lt;p&gt;当存储层不命中后，即时返回的空对象也将其缓存起来，同时设置一个过期时间，之后再访问这个数据，讲会从缓存中获取，保护了后端数据源。&lt;/p&gt;
+&lt;p&gt;弊端：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;如果空值大量缓存起来，会造成空间浪费。&lt;/li&gt;
+&lt;li&gt;可能会出现缓存层和存储层数据不一致的情况，对需要保持一致性的业务会有影响。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;缓存击穿&#34;&gt;缓存击穿&lt;/h2&gt;
+&lt;p&gt;当某个 key 在过期的瞬间，由大量的请求访问，由于数据过期，会同时访问数据库来查询最新数据，并写回缓存，会导致数据库压力瞬间过大。&lt;/p&gt;
+&lt;p&gt;解决：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;设置缓存不过期。&lt;/li&gt;
+&lt;li&gt;加互斥锁。分布式锁，保证对于每个 key，同时只有一个线程去查询后端服务，其他线程没有获得分布式锁的权限，因此只需要等待即可。这种方式将高并发的压力，转移到了分布式锁，因为对分布式的考验很大。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;缓存雪崩&#34;&gt;缓存雪崩&lt;/h2&gt;
+&lt;p&gt;在某一个时间段，缓存集中过期失效，所有的访问查询都落到数据库上，会产生周期性的压力波峰。所有的请求都到达存储层，存储层调用暴增，造成存储层挂掉，缓存服务节点宕机。&lt;/p&gt;
+&lt;p&gt;解决：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;redis 高可用。多设几台 redis 服务器，搭建集群。&lt;/li&gt;
+&lt;li&gt;限流降级。在缓存失效后，通过加锁或者队列来控制读数据库写缓存的线程数量。&lt;/li&gt;
+&lt;li&gt;数据预热。正式部署前，先把可能的数据预先访问一遍，设置不同的过期时间，让缓存失效的时间点尽量均匀。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;参考：https://www.bilibili.com/video/BV1S54y1R7SB&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+    </item>
     
     <item>
       <title>多协程爬虫</title>

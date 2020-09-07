@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-cn" data-theme="">
+<head>
+    
+        
+<meta charset="utf-8">
+<meta name="HandheldFriendly" content="True">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer-when-downgrade">
+
+<title>Redis 入门笔记 - 天府码农博客</title>
+<meta name="description" content="天府码农博客">
+
+<link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
+<link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
+
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1599463253" />
+<style>
+
+    [data-theme="dark"] {   
+        --font-color: #eee;
+--bg-color: #212121;
+
+--link-color:#599ada;
+--link-state-color:#ff5858;
+--link-state-border-color: rgba(238, 54, 54, 0.5);
+
+--thead-bg-color: #343a40;
+--table-border-color: lightgrey;
+
+--pre-color: #333;
+--pre-bg-color: #f1f1f1;
+
+--bq-color: #ccc;
+--hr-color: #333;
+
+--pagination-bg-color: #373737;
+--pagination-link-color: #b6b6b6;
+
+--post-info-color: grey;
+
+--switcher-color: #333;
+--switcher-bg-color: #fff;
+
+    }
+
+</style>
+
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1599463253" />
+
+
+
+
+
+<meta property="og:title" content="Redis 入门笔记" />
+<meta property="og:description" content="Nosql 概述 单机 MySQL 年代 在早年的互联网时代，一个网站的访问量不会太大，使用单个数据库完全足够。随着用户量增大，数据增大，整个网站出现瓶颈。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://jiexiang.github.io/post/redis.html" />
+<meta property="article:published_time" content="2020-09-01T13:43:41+08:00" />
+<meta property="article:modified_time" content="2020-09-01T13:43:41+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Redis 入门笔记"/>
+<meta name="twitter:description" content="Nosql 概述 单机 MySQL 年代 在早年的互联网时代，一个网站的访问量不会太大，使用单个数据库完全足够。随着用户量增大，数据增大，整个网站出现瓶颈。"/>
+
+
+
+
+
+
+
+
+    
+</head>
+<body>
+    <a class="skip-main" href="#main"></a>
+    <div class="container">
+        <header class="common-header"> 
+            
+                <h1 class="site-title">
+    <a href="/">天府码农博客</a>
+</h1>
+
+    <nav>
+        
+        
+        <a class="" href="https://jiexiang.github.io/posts/" title="">归档</a>
+        
+    </nav>
+
+
+            
+        </header>
+        <main id="main" tabindex="-1"> 
+            
+    
+    
+    <article class="post">
+        <header class="post-header">
+            <h1 class="post-title">Redis 入门笔记</h1>
+        </header>
+        <div class="content">
+            <h2 id="nosql-概述">Nosql 概述</h2>
+<h3 id="单机-mysql-年代">单机 MySQL 年代</h3>
+<p>在早年的互联网时代，一个网站的访问量不会太大，使用单个数据库完全足够。随着用户量增大，数据增大，整个网站出现瓶颈。</p>
+<ol>
+<li>数据量太大，一个服务器放不下</li>
+<li>数据的索引，一个服务器放不下</li>
+<li>访问量太大，一个服务器承受不了</li>
+</ol>
+<h3 id="缓存读写分离">缓存、读写分离</h3>
+<p>网站大多数情况下都是在读，每次都去查询数据库十分消耗性能，为了减轻服务器的压力，应该使用缓存来保证效率。</p>
+<p>发展过程：优化数据结构和索引、文件缓存，Memcached</p>
+<h3 id="分库分表水平拆分mysql-集群">分库分表、水平拆分、MySQL 集群</h3>
+<p>早年发展历程：</p>
+<ol>
+<li>早年 MyISAM：表锁，十分影响效率</li>
+<li>Innodb：行锁</li>
+<li>MySQL 表分区</li>
+<li>MySQL 集群</li>
+</ol>
+<p>如今互联网产品的用户数量、用户信息、社交网络等等爆发式增长，迫切需要新的技术来支撑如今的互联网产品。</p>
+<blockquote>
+<p>3V + 3高</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>3V</th>
+<th>3高</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>海量 Volume</td>
+<td>高并发</td>
+</tr>
+<tr>
+<td>多样 Variety</td>
+<td>高可扩</td>
+</tr>
+<tr>
+<td>实时 Velocity</td>
+<td>高性能</td>
+</tr>
+</tbody>
+</table>
+<h3 id="什么是-nosql">什么是 NoSQL</h3>
+<blockquote>
+<p>NoSQL = Not only SQL</p>
+</blockquote>
+<p>泛指非关系型数据库。NoSQL 存储数据不再是像 MySQL 等关系型数据库一样，需要固定的格式。NoSQL 在当前大数据环境下发展十分迅速，其中 Redis 发展最快。</p>
+<p><strong>特点</strong></p>
+<ol>
+<li>数据之间没有关系，方便扩展</li>
+<li>大数据量，高性能</li>
+<li>数据类型多样</li>
+</ol>
+<p>对比传统的 RDBMS：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Nosql</th>
+<th align="center">RDBMS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">没有固定的查询语言</td>
+<td align="center">SQL</td>
+</tr>
+<tr>
+<td align="center">键值对存储、列存储、文档存储</td>
+<td align="center">结构化组织</td>
+</tr>
+<tr>
+<td align="center">可性能，高可用，高可扩</td>
+<td align="center">基础的事务</td>
+</tr>
+<tr>
+<td align="center">不仅仅是数据</td>
+<td align="center">数据和关系都单独存在表中</td>
+</tr>
+</tbody>
+</table>
+<h2 id="redis-入门">Redis 入门</h2>
+<p>Redis（Remote Dictionary Server），远程字典服务。使用 C 语言编写、单线程、开源、支持网络、基于内存亦可持久化的日志型、KV 数据库，提供多种编程语言的 API。</p>
+<p>redis 会周期性地把更新的数据写入磁盘，或者把修改操作写入追加的记录文件，并且在此基础上实现主从（master-slave）同步。</p>
+<h3 id="linux-下安装">Linux 下安装</h3>
+<ol>
+<li>
+<p><a href="https://redis.io/">官网</a>下载最新版的 redis 压缩包，解压到<code>/opt</code>目录。</p>
+</li>
+<li>
+<p>进入解压后的文件夹，执行命令：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 安装 gcc 最新版</span>
+yum install gcc-c++
+   
+<span style="color:#8f5902;font-style:italic"># 查看当前版本</span>
+gcc -v <span style="color:#8f5902;font-style:italic"># 4.8.5</span>
+   
+yum -y install centos-release-scl
+yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
+scl <span style="color:#204a87">enable</span> devtoolset-9 bash
+   
+gcc -v <span style="color:#8f5902;font-style:italic"># 9.3.1</span>
+   
+make
+make install
+</code></pre></div></li>
+<li>
+<p>redis 默认安装路径：<code>/usr/local/bin</code></p>
+</li>
+<li>
+<p>在<code>/usr/local/bin</code>下，创建一个文件夹<code>jconfig</code>用来存放 redis 的配置文件。</p>
+</li>
+<li>
+<p>把<code>/opt</code>下的 redis 安装目录里面的<code>redis.conf</code>文件复制过来。</p>
+</li>
+<li>
+<p>打开配置文件，设置后台启动：修改<code>daemonize yes</code>。</p>
+</li>
+</ol>
+<h3 id="启动和连接">启动和连接</h3>
+<p>启动</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">redis-server jconfig/redis.conf
+</code></pre></div><p>连接</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">redis-cli -p <span style="color:#0000cf;font-weight:bold">6379</span>
+</code></pre></div><p>查看进程</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ps -ef<span style="color:#000;font-weight:bold">|</span>grep redis
+</code></pre></div><h3 id="基础知识">基础知识</h3>
+<p>默认有 16 个数据库，默认使用第 0 个：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">databases <span style="color:#0000cf;font-weight:bold">16</span>
+</code></pre></div><p>切换数据库：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#204a87;font-weight:bold">select</span> <span style="color:#0000cf;font-weight:bold">3</span>
+</code></pre></div><p>查看数据库大小：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">dbsize
+</code></pre></div><p>查看数据库中所有的 key：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">keys *
+</code></pre></div><p>清空当前数据库：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">flushdb
+</code></pre></div><p>清空全部数据库：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">flushall
+</code></pre></div><div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 判断当前的 key 是否存在</span>
+EXISTS name
+
+<span style="color:#8f5902;font-style:italic"># 移除当前的 key</span>
+move name <span style="color:#0000cf;font-weight:bold">1</span>
+
+<span style="color:#8f5902;font-style:italic"># 设置 key 的过期时间，单位是秒</span>
+EXPIRE name <span style="color:#0000cf;font-weight:bold">10</span> 
+
+<span style="color:#8f5902;font-style:italic"># 查看剩余时间</span>
+ttl name
+
+<span style="color:#8f5902;font-style:italic"># 查看当前 key 类型</span>
+<span style="color:#204a87">type</span> name
+</code></pre></div><h2 id="redis-五大基本数据类型">redis 五大基本数据类型</h2>
+<h3 id="string">string</h3>
+<p>使用场景：</p>
+<ol>
+<li>计数器</li>
+<li>统计多单位的数量</li>
+<li>浏览数、粉丝数等等</li>
+</ol>
+<p>值是字符串的情况</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 设值</span>
+<span style="color:#204a87">set</span> k1 v1
+
+<span style="color:#8f5902;font-style:italic"># 获取</span>
+get k1
+
+<span style="color:#8f5902;font-style:italic"># 追加（如果 key 不存在，相当于 set）</span>
+append k1
+
+<span style="color:#8f5902;font-style:italic"># 字符串长度</span>
+strlen k1
+</code></pre></div><p>字符串范围</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 截取字符串 k1[0:3]</span>
+getrange k1 <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#0000cf;font-weight:bold">3</span>
+
+<span style="color:#8f5902;font-style:italic"># 获取全部字符串</span>
+getrange k1 <span style="color:#0000cf;font-weight:bold">0</span> -1
+
+<span style="color:#8f5902;font-style:italic"># 从字符串的位置 1 开始替换字符串</span>
+setrange k1 <span style="color:#0000cf;font-weight:bold">1</span> xx
+</code></pre></div><p>过期</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 30 秒后过期</span>
+setex k1 <span style="color:#0000cf;font-weight:bold">30</span> xxx
+
+<span style="color:#8f5902;font-style:italic"># 如果 k1 不存在，则创建</span>
+setnx k1 xx
+
+<span style="color:#8f5902;font-style:italic"># msetnx 是一个原子性操作，要么一起成功，要么一起失败</span>
+msetnx k1 v1 k2 v2
+</code></pre></div><p>同时设置多个</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mset k1 v1 k2 v2 ...
+</code></pre></div><p>同时获取多个</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mget k1 k2 k3 ...
+</code></pre></div><p>先 get 再 set</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 如果 db 原本不存在，则返回值为 nil</span>
+<span style="color:#8f5902;font-style:italic"># 如果 db 原本存在，则返回 db 旧值，再设置新值</span>
+getset db redis
+</code></pre></div><p>值是数字的情况</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#204a87">set</span> views <span style="color:#0000cf;font-weight:bold">0</span>
+
+<span style="color:#8f5902;font-style:italic"># 自增 1</span>
+incr views
+
+<span style="color:#8f5902;font-style:italic"># 自减 1</span>
+decr views
+
+<span style="color:#8f5902;font-style:italic"># +10</span>
+incrby views <span style="color:#0000cf;font-weight:bold">10</span>
+
+<span style="color:#8f5902;font-style:italic"># -10</span>
+decrby views <span style="color:#0000cf;font-weight:bold">10</span>
+</code></pre></div><h3 id="list">list</h3>
+<p>可以用 list 来实现栈、队列、消息队列，阻塞队列。可以把 list 看做一个横向排列的数组，可以从左右操作里面的元素。</p>
+<p>增加元素：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 从左边加入元素</span>
+lpush list a
+<span style="color:#8f5902;font-style:italic"># 从右边加入元素</span>
+rpush list b
+<span style="color:#8f5902;font-style:italic"># 以下标设置值</span>
+lset list <span style="color:#0000cf;font-weight:bold">0</span> item
+<span style="color:#8f5902;font-style:italic"># 在 &lt;vlaue&gt; 的前面或者后面，插入 &lt;newValue&gt;</span>
+linsert list before/after &lt;vlaue&gt; &lt;newValue&gt;
+</code></pre></div><p>移除元素：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 移除左边的元素</span>
+lpop list
+<span style="color:#8f5902;font-style:italic"># 移除右边的元素</span>
+rpop list
+<span style="color:#8f5902;font-style:italic"># 移除指定的元素</span>
+lrem list &lt;数量&gt; xxx
+<span style="color:#8f5902;font-style:italic"># 从 list 中移除最后一个元素，并加入 otherlist</span>
+rpoplpush list otherlist
+</code></pre></div><p>其他操作：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 判断列表是否存在</span>
+exists list
+
+<span style="color:#8f5902;font-style:italic"># 获取 list 全部值</span>
+lrange list <span style="color:#0000cf;font-weight:bold">0</span> -1
+
+<span style="color:#8f5902;font-style:italic"># 通过下标取值</span>
+lindex list <span style="color:#0000cf;font-weight:bold">1</span>
+
+<span style="color:#8f5902;font-style:italic"># 获取 list 长度</span>
+llen list
+
+<span style="color:#8f5902;font-style:italic"># 截取元素</span>
+ltrim list <span style="color:#ce5c00;font-weight:bold">[</span>start:end<span style="color:#ce5c00;font-weight:bold">]</span>
+</code></pre></div><h3 id="set">set</h3>
+<p>set 集合中的值不能重复。</p>
+<p>设置元素：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sadd myset a
+</code></pre></div><p>移除元素：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 移除指定元素</span>
+srem myset a
+
+<span style="color:#8f5902;font-style:italic"># 随机移除一个元素</span>
+spop myset
+
+<span style="color:#8f5902;font-style:italic"># 从 myset 中移除 a 到 myset2</span>
+smove myset myset2 a
+</code></pre></div><p>其他操作：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 查看集合中所有的值</span>
+smembers myset
+
+<span style="color:#8f5902;font-style:italic"># 判断一个值在不在集合中</span>
+sismember myset a
+
+<span style="color:#8f5902;font-style:italic"># 获取集合中元素的个数</span>
+scard myset
+
+<span style="color:#8f5902;font-style:italic"># 随机抽取指定个数的元素</span>
+srandmember myset &lt;个数&gt;
+</code></pre></div><p>交并差：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 差集</span>
+sdiff myset1 myset2
+
+<span style="color:#8f5902;font-style:italic"># 交集</span>
+sinter myset1 myset2
+
+<span style="color:#8f5902;font-style:italic"># 并集</span>
+sunion myset1 myset2
+</code></pre></div><h3 id="hash">hash</h3>
+<p>hash 适合对象的存储，尤其是用户信息之类的，可能会经常变更的数据。</p>
+<p>单个 key-value：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 设置</span>
+hset hs k1 v1
+<span style="color:#8f5902;font-style:italic"># 获取</span>
+hget hs k1
+</code></pre></div><p>多个 key-value：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 同时设置多个 k-v</span>
+hmset hs k1 v1 k2 v2
+<span style="color:#8f5902;font-style:italic"># 获取指定的 key</span>
+hmget hs k1
+<span style="color:#8f5902;font-style:italic"># 获取所有的 k-v</span>
+hgetall hs
+</code></pre></div><p>删除：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 删除指定的 key</span>
+hdel hs k1
+</code></pre></div><p>其他操作：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 获取 key 数量</span>
+hlen hs
+
+<span style="color:#8f5902;font-style:italic"># 判断指定 key 是否存在</span>
+hexists hs k1
+
+<span style="color:#8f5902;font-style:italic"># 获取所有 key</span>
+hkeys hs
+
+<span style="color:#8f5902;font-style:italic"># 获取所有 value</span>
+hvals hs
+
+<span style="color:#8f5902;font-style:italic"># 如果 k1 不存在，才设值</span>
+hsetnx hs k1 v1
+
+<span style="color:#8f5902;font-style:italic"># 设置增量：k1 + 1</span>
+hincrby hs k1 <span style="color:#0000cf;font-weight:bold">1</span>
+</code></pre></div><h3 id="zset">zset</h3>
+<p>zset 为有序集合，在 set 的基础上，增加了一个值。排行榜、成绩、工资排序，消息带权重等判断。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 设置一个值</span>
+zadd myset <span style="color:#0000cf;font-weight:bold">1</span> one
+<span style="color:#8f5902;font-style:italic"># 设置多个值</span>
+zadd money <span style="color:#0000cf;font-weight:bold">500</span> zhangsan <span style="color:#0000cf;font-weight:bold">200</span> lisi <span style="color:#0000cf;font-weight:bold">900</span> wangwu
+
+<span style="color:#8f5902;font-style:italic"># 从小到大列出所有元素</span>
+zrange money <span style="color:#0000cf;font-weight:bold">0</span> -1
+ZRANGEBYSCORE money -inf +inf
+
+<span style="color:#8f5902;font-style:italic"># 从小到大列出所有元素，并附带值</span>
+ZRANGEBYSCORE money -inf +inf withscores
+
+<span style="color:#8f5902;font-style:italic"># 移除指定元素</span>
+zrem money zhangsan
+
+<span style="color:#8f5902;font-style:italic"># 获取值在此区间范围的元素个数</span>
+zcount money <span style="color:#0000cf;font-weight:bold">100</span> <span style="color:#0000cf;font-weight:bold">600</span>
+</code></pre></div><h2 id="redis-三种特殊数据类型">redis 三种特殊数据类型</h2>
+<h3 id="geopatial-地理位置">Geopatial 地理位置</h3>
+<p>实现定位、附近的人，打车距离计算等需求。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 添加一个位置</span>
+geoadd china:city 116.4 39.9 beijing
+
+<span style="color:#8f5902;font-style:italic"># 获取一个位置</span>
+getpos china:city beijing
+
+<span style="color:#8f5902;font-style:italic"># 计算两地距离</span>
+geodist china:city beijing shanghai km
+
+<span style="color:#8f5902;font-style:italic"># 找出位于指定元素周围的其他元素</span>
+georadiusbymember china:city beijing <span style="color:#0000cf;font-weight:bold">1000</span> km
+
+<span style="color:#8f5902;font-style:italic"># 以给定经纬度为圆心，找到半径内地点</span>
+georadius china:city <span style="color:#0000cf;font-weight:bold">110</span> <span style="color:#0000cf;font-weight:bold">30</span> <span style="color:#0000cf;font-weight:bold">1000</span> km
+georadius china:city <span style="color:#0000cf;font-weight:bold">110</span> <span style="color:#0000cf;font-weight:bold">30</span> <span style="color:#0000cf;font-weight:bold">1000</span> km count &lt;个数&gt;
+<span style="color:#8f5902;font-style:italic"># withdist（距离），withcoord （经纬）</span>
+georadius china:city <span style="color:#0000cf;font-weight:bold">110</span> <span style="color:#0000cf;font-weight:bold">30</span> <span style="color:#0000cf;font-weight:bold">1000</span> km withdist withcoord
+
+<span style="color:#8f5902;font-style:italic"># 返回 11 个字符的一维字符串，两个字符串约接近代表距离越近</span>
+geohash china:city beijing chongqing
+
+<span style="color:#8f5902;font-style:italic"># 移除指定元素</span>
+zrem china:city beijing
+
+<span style="color:#8f5902;font-style:italic"># 查看所有元素</span>
+zrange china:city <span style="color:#0000cf;font-weight:bold">0</span> -1
+</code></pre></div><h3 id="hyperloglog">hyperloglog</h3>
+<p>不重复的数。使用场景：</p>
+<ol>
+<li>投票</li>
+<li>网站访问数量</li>
+</ol>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 创建一组元素</span>
+pfadd mykey a b c d a b
+
+<span style="color:#8f5902;font-style:italic"># 统计基数数量</span>
+pfcount mykey
+
+<span style="color:#8f5902;font-style:italic"># 合并两组元素到 mykey</span>
+pfmerge mykey mykey1 mykey2
+</code></pre></div><p>如果可以容错，那可以使用 hyperloglog。如果不允许容错，就使用 set 或者自己的数据类型来实现。</p>
+<h3 id="bitmap">bitmap</h3>
+<p>统计活跃度，打卡等。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 一周的打卡</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#0000cf;font-weight:bold">1</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">1</span> <span style="color:#0000cf;font-weight:bold">0</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">2</span> <span style="color:#0000cf;font-weight:bold">1</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">3</span> <span style="color:#0000cf;font-weight:bold">0</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">4</span> <span style="color:#0000cf;font-weight:bold">1</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">5</span> <span style="color:#0000cf;font-weight:bold">1</span>
+setbit sign <span style="color:#0000cf;font-weight:bold">6</span> <span style="color:#0000cf;font-weight:bold">0</span>
+
+<span style="color:#8f5902;font-style:italic"># 查看某天是否打卡</span>
+getbit sign <span style="color:#0000cf;font-weight:bold">3</span>
+
+<span style="color:#8f5902;font-style:italic"># 统计打卡次数</span>
+bitcount sign
+</code></pre></div><h2 id="事务">事务</h2>
+<p>redis 事务本质：一组命令的集合。redis 单条命令是原子性的，但是事务不能保证原子性。</p>
+<blockquote>
+<p>一次性、顺序性、排他性。</p>
+</blockquote>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 开启事务</span>
+multi
+
+<span style="color:#8f5902;font-style:italic"># 其他命令</span>
+...
+
+<span style="color:#8f5902;font-style:italic"># 执行事务</span>
+<span style="color:#204a87">exec</span>
+
+<span style="color:#8f5902;font-style:italic"># 取消事务</span>
+discard
+</code></pre></div><ul>
+<li>编译型异常，代码有问题或者命令错误，事务中所有的命令都不会被执行。</li>
+<li>运行时异常，如果事务中一条命令执行失败（如对字符串 incr），其他命令可以正常执行。</li>
+</ul>
+<h3 id="锁">锁</h3>
+<ul>
+<li>悲观锁：认为什么时候都会出问题，无论做什么都加锁</li>
+<li>乐观锁：认为不会出什么问题。更新数据的时候再判断在此期间是否有人修改过数据。获取 version，更新的时候比较 version。</li>
+</ul>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 取消监视</span>
+unwatch money
+
+<span style="color:#8f5902;font-style:italic"># 监视</span>
+watch money
+
+multi
+
+decrby money <span style="color:#0000cf;font-weight:bold">10</span>
+
+<span style="color:#8f5902;font-style:italic"># 执行之前，如果另外一个线程修改了 money 的值，这个时候就会导致事务执行失败</span>
+<span style="color:#204a87">exec</span>
+</code></pre></div><h2 id="redis-配置文件">redis 配置文件</h2>
+<h3 id="网络">网络</h3>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 绑定的ip</span> 
+<span style="color:#204a87">bind</span> 127.0.0.1
+
+<span style="color:#8f5902;font-style:italic"># 保护模式</span>
+protected-mode yes  
+
+<span style="color:#8f5902;font-style:italic"># 端口设置</span>
+port <span style="color:#0000cf;font-weight:bold">6379</span> 
+</code></pre></div><h3 id="通用">通用</h3>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 守护进程，这个需要手动开启</span>
+daemonize yes
+
+<span style="color:#8f5902;font-style:italic"># 如果以后台的方式运行，我们就需要指定一个 pid 文件!</span>
+pidfile /var/run/redis_6379.pid
+
+<span style="color:#8f5902;font-style:italic"># 日志级别</span>
+loglevel notice
+
+<span style="color:#8f5902;font-style:italic"># 日志的文件位置名</span>
+logfile <span style="color:#4e9a06">&#34;&#34;</span> 
+
+<span style="color:#8f5902;font-style:italic"># 数据库数量</span>
+databases
+
+<span style="color:#8f5902;font-style:italic"># 启动 logo</span>
+always-show-logo yes
+</code></pre></div><h3 id="快照">快照</h3>
+<p>快照，也就是备份。就像单机游戏里面的存档，可以恢复到存档时的状态。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 如果 900s 内，如果至少有一个 1 key 进行了修改，redis 进行持久化操作</span> 
+save <span style="color:#0000cf;font-weight:bold">900</span> <span style="color:#0000cf;font-weight:bold">1</span>
+<span style="color:#8f5902;font-style:italic"># 如果 300s 内，如果至少 10 key 进行了修改，redis 进行持久化操作</span> 
+save <span style="color:#0000cf;font-weight:bold">300</span> <span style="color:#0000cf;font-weight:bold">10</span>
+<span style="color:#8f5902;font-style:italic"># 如果 60s 内，如果至少 10000 key 进行了修改，redis 进行持久化操作</span> 
+save <span style="color:#0000cf;font-weight:bold">60</span> <span style="color:#0000cf;font-weight:bold">10000</span>
+
+<span style="color:#8f5902;font-style:italic"># 持久化如果出错，是否还需要继续工作</span>
+stop-writes-on-bgsave-error yes  
+
+<span style="color:#8f5902;font-style:italic"># 是否压缩 rdb 文件，需要消耗一些cpu资源</span>
+rdbcompression yes 
+
+<span style="color:#8f5902;font-style:italic"># 保存rdb文件的时候，进行错误的检查校验</span>
+rdbchecksum yes 
+
+<span style="color:#8f5902;font-style:italic"># rdb 文件保存的目录</span>
+dir ./ 
+</code></pre></div><h3 id="安全">安全</h3>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 获取密码</span>
+config get requirepass
+
+<span style="color:#8f5902;font-style:italic"># 设置密码</span>
+config <span style="color:#204a87">set</span> requirepass <span style="color:#4e9a06">&#34;123456&#34;</span>
+
+<span style="color:#8f5902;font-style:italic"># 鉴权</span>
+auth <span style="color:#0000cf;font-weight:bold">123456</span>
+</code></pre></div><h3 id="client">client</h3>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 最大客户端连接数</span>
+maxclients <span style="color:#0000cf;font-weight:bold">100</span>
+
+<span style="color:#8f5902;font-style:italic"># 配置最大的内存容量</span>
+maxmemory &lt;bytes&gt;
+
+<span style="color:#8f5902;font-style:italic"># 内存到达上限之后的处理策略</span>
+maxmemory-policy noeviction 
+1、volatile-lru:只对设置了过期时间的key进行LRU<span style="color:#ce5c00;font-weight:bold">(</span>默认值<span style="color:#ce5c00;font-weight:bold">)</span> 
+2、allkeys-lru : 删除lru算法的key 
+3、volatile-random:随机删除即将过期key 
+4、allkeys-random:随机删除
+5、volatile-ttl : 删除即将过期的 
+6、noeviction : 永不过期，返回错误
+</code></pre></div><h3 id="aofappend-only">AOF（append only）</h3>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 默认不开启 aof 模式</span>
+appendonly 
+
+<span style="color:#8f5902;font-style:italic"># 持久化文件名字</span>
+appendfilename <span style="color:#4e9a06">&#34;appendonly.aof&#34;</span>
+
+<span style="color:#8f5902;font-style:italic"># 每次修改都同步</span>
+appendfsync always
+<span style="color:#8f5902;font-style:italic"># 每秒同步一次</span>
+appendfsync everysec
+<span style="color:#8f5902;font-style:italic"># 不执行同步</span>
+appendfsync no
+</code></pre></div><h2 id="redis-持久化">redis 持久化</h2>
+<p>redis 是内存数据库，如果不将内存中的数据库状态保存到磁盘，一旦服务器进程退出，服务器中的数据库状态将会消失，所以定期需要将数据持久化。</p>
+<h3 id="rdbredis-database">RDB（Redis DataBase）</h3>
+<p>在指定的时间间隔内，将内存中的数据集快照写入磁盘，恢复时将快照文件直接读到内存里。redis 默认就是以 rdb 方式进行持久化，rdb 快照文件叫做<code>dump.rdb</code>，可以在配置中进行修改：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">dbfilename dump.rdb
+
+<span style="color:#8f5902;font-style:italic"># 触发持久化条件</span>
+save &lt;秒&gt; &lt;操作次数&gt;
+</code></pre></div><p>触发机制：</p>
+<ol>
+<li>save 规则满足的情况下</li>
+<li>执行 flushall</li>
+<li>退出 redis</li>
+</ol>
+<p>备份 redis 时，只需要将这个文件，放到 redis 启动目录即可，redis 启动时会自动检查 dump.rdb 并恢复其中的数据。</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 查看 redis 目录</span>
+127.0.0.1:6379&gt; config get dir
+1<span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#4e9a06">&#34;dir&#34;</span>
+2<span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#4e9a06">&#34;/usr/local/bin&#34;</span> <span style="color:#8f5902;font-style:italic"># 如果在这个目录下存在 dump.rdb 文件，启动就会自动恢复其中的数据</span>
+</code></pre></div><h3 id="aofappend-only-file">AOF（Append Only File）</h3>
+<p>aof 将所有的<strong>写</strong>的命令都记录下来，恢复的时候就把这个文件全部执行一遍。以日志的形势记录每个操作，只允许追加但不可以改写文件，redis 启动之初会读取该文件重新构建数据。</p>
+<blockquote>
+<p>aof 文件如果中途别恶意修改，redis 会启动不成功，这个时候需要修复 aof 文件。</p>
+</blockquote>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">redis-check-aof --fix appendonly.aof
+</code></pre></div><p>aof 默认是文件的无限追加，文件会越来越大。修复速度也比 rdb 慢。</p>
+<h2 id="redis-发布订阅">Redis 发布订阅</h2>
+<p>redis 发布订阅（pub/sub）是一种消息通信模式：发送者（pub）发送消息，订阅者（sub）接收消息。redis 客户端可以订阅任意数量的频道。</p>
+<p>应用场景：网络聊天室、实时广播、实时提醒、订阅关注系统等。</p>
+<p>订阅端：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 订阅</span>
+SUBSCRIBE cctv
+</code></pre></div><p>发送端：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">publish cctv <span style="color:#4e9a06">&#34;hello&#34;</span>
+</code></pre></div><h2 id="redis-主从复制">Redis 主从复制</h2>
+<h3 id="概念">概念</h3>
+<p>主从复制，是将一台 redis 服务器的数据，复制到其他 redis 服务器。前者称为主节点（master），后者称为从节点（slave）。数据的复制是单向的，智能由主节点到从节点。master 以写为主，slave 以读为主。</p>
+<p>默认情况下启动 redis 服务，每台 redis 都是主节点。一个主节点可以有多个从节点，一个从节点只能有一个主节点。</p>
+<p>主从复制主要包括：</p>
+<ol>
+<li>数据冗余：主从复制实现了数据热备份，是持久化之外的一种冗余方式。</li>
+<li>故障恢复：当主从节点出现问题时，可以由从节点提供服务，实现快速的故障恢复，实际上是一种服务冗余。</li>
+<li>负载均衡：在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务（写数据时连接主节点，读数据时连接从节点）。分担服务器负载，尤其是在写少读多的场景下，通过多个从节点分担读负载，可以大大提高 redis 服务器并发量。</li>
+<li>高可用集群：除了上述作用以外，主从复制还是哨兵和集群能够实施的基础，因此说主从复制是 redis 高可用的基础。</li>
+</ol>
+<p>单台 redis 服务器弊端：</p>
+<ol>
+<li>从结构上，单个 redis 服务器可能会发生单点故障。单个服务器要处理所有的请求负载，压力较大。</li>
+<li>从容量上，单个 redis 服务器内存容量有限。</li>
+</ol>
+<h3 id="环境配置">环境配置</h3>
+<p>查看环境：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 查看当前 redis 的主从信息</span>
+127.0.0.1:6379&gt; info replication
+
+<span style="color:#8f5902;font-style:italic"># 角色 master</span>
+role:master 
+<span style="color:#8f5902;font-style:italic"># 没有从机</span>
+connected_slaves:0 
+</code></pre></div><p>一般来说，主需要配置从机：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 成为 6379 的从机</span>
+127.0.0.1:6380&gt; SLAVEOF 127.0.0.1 <span style="color:#0000cf;font-weight:bold">6379</span>
+</code></pre></div><blockquote>
+<p>主机断开连接，从机依旧可以连接到主机。主机如果启动了，从机依旧可以直接获取到主机的信息。</p>
+</blockquote>
+<h3 id="复制原理">复制原理</h3>
+<p>Slave 连接 Master 成功后会主动发送一个 sync 同步命令。</p>
+<p>master 接到命令，启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令。在后台进程执行完毕之后，master 将传送整个数据文件到 slave，完成一次完全同步。只要重新连接 master，一次全量复制将自动执行。</p>
+<p>**全量复制：**slave 服务在接收到数据文件后，将其存盘并加载到内存中。</p>
+<p>**增量复制：**master 继续将新的所有收集到的修改命令依次传给 slave，完成同步。</p>
+<h3 id="哨兵模式">哨兵模式</h3>
+<p>如果主机断开了连接，可以使用<code>slaveof no one</code>让自己成为主机，其他节点需要手动连接到最新的节点，如果之前的主机恢复了，需要手动让其他从机再次连接到主机。</p>
+<p>这样手动的方式费时费力，还会造成一段时间内服务不可用。可以使用哨兵（Sentinel）架构来解决这个问题。</p>
+<blockquote>
+<p>后台监控主机是否故障，如果故障了会根据投票数自动将从机转换为主机。</p>
+</blockquote>
+<p>哨兵是一个独立的进程，独立运行。哨兵通过发送命令，等待 redis 服务器响应，从而监控多个 redis 实例。</p>
+<p><img src="/Users/jiexiang/Desktop/tfmnblog/content/post/redis.assets/redis-01.png" alt=""></p>
+<p>哨兵作用：</p>
+<ol>
+<li>通过发送命令，让这三台 redis 服务器返回其监控运行状态。</li>
+<li>当哨兵检测到 master 宕机，会自动将 slave 切换成 master，然后通过<strong>发布订阅模式</strong>通知其他服务器，修改配置文件，让他们切换主机。</li>
+</ol>
+<p>一个哨兵进程监控，可能也会出现问题。为此，可以使用多个哨兵进行监控，各个哨兵之间互相监控，形成多哨兵模式。</p>
+<p>**主观下线：**假如主服务器宕机，哨兵A 先检测到这个情况，认为主服务器不可用，系统不会马上进行 failover 过程。</p>
+<p>**客观下线：**当后面的哨兵也检测到主服务器不可用，并且数量达到一定值，哨兵之间会进行投票。切换主机后，通过发布订阅模式，让各个哨兵把自己监控的从服务器切换主机。</p>
+<h4 id="启用哨兵">启用哨兵</h4>
+<ol>
+<li>
+<p>修改哨兵配置文件 sentinel.conf：</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sentinel monitor myredis 127.0.0.1 <span style="color:#0000cf;font-weight:bold">6379</span> <span style="color:#0000cf;font-weight:bold">1</span>
+</code></pre></div></li>
+<li>
+<p>启动</p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">redis-sentinel jconfig/sentinel.conf
+</code></pre></div></li>
+</ol>
+<h2 id="redis-缓存穿透">Redis 缓存穿透</h2>
+<h3 id="概念-1">概念</h3>
+<p>某个请求需要查询一个数据，发现 redis 没有，也就是缓存没有命中，于是向持久层数据库查询，发现也没有，本次查询失败。当请求很多时，这会给持久层数据库造成很大压力。</p>
+<h3 id="布隆过滤器">布隆过滤器</h3>
+<p>布隆过滤器是一种数据结构，对所有可能查询的参数以 hash 形式存储，在控制层先进行校验，不符合则丢弃，从而减轻底层存储查询的压力。</p>
+<p>当存储层不命中后，即时返回的空对象也将其缓存起来，同时设置一个过期时间，之后再访问这个数据，讲会从缓存中获取，保护了后端数据源。</p>
+<p>弊端：</p>
+<ol>
+<li>如果空值大量缓存起来，会造成空间浪费。</li>
+<li>可能会出现缓存层和存储层数据不一致的情况，对需要保持一致性的业务会有影响。</li>
+</ol>
+<h2 id="缓存击穿">缓存击穿</h2>
+<p>当某个 key 在过期的瞬间，由大量的请求访问，由于数据过期，会同时访问数据库来查询最新数据，并写回缓存，会导致数据库压力瞬间过大。</p>
+<p>解决：</p>
+<ol>
+<li>设置缓存不过期。</li>
+<li>加互斥锁。分布式锁，保证对于每个 key，同时只有一个线程去查询后端服务，其他线程没有获得分布式锁的权限，因此只需要等待即可。这种方式将高并发的压力，转移到了分布式锁，因为对分布式的考验很大。</li>
+</ol>
+<h2 id="缓存雪崩">缓存雪崩</h2>
+<p>在某一个时间段，缓存集中过期失效，所有的访问查询都落到数据库上，会产生周期性的压力波峰。所有的请求都到达存储层，存储层调用暴增，造成存储层挂掉，缓存服务节点宕机。</p>
+<p>解决：</p>
+<ol>
+<li>redis 高可用。多设几台 redis 服务器，搭建集群。</li>
+<li>限流降级。在缓存失效后，通过加锁或者队列来控制读数据库写缓存的线程数量。</li>
+<li>数据预热。正式部署前，先把可能的数据预先访问一遍，设置不同的过期时间，让缓存失效的时间点尽量均匀。</li>
+</ol>
+<blockquote>
+<p>参考：https://www.bilibili.com/video/BV1S54y1R7SB</p>
+</blockquote>
+
+        </div>
+        
+
+    
+
+
+<div class="post-info">
+    
+        <div class="post-date">2020-09-01</div>
+    
+    <div class="post-taxonomies">
+        
+            
+    </div>
+</div>
+
+    </article>
+
+    
+        
+    <div class="pagination post-pagination">
+        <div class="left pagination-item disabled">
+            
+        </div>
+        <div class="right pagination-item ">
+            
+                <a href="/post/crawl.html">多协程爬虫</a>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+
+        </main>
+        
+            <footer class="common-footer">
+    
+    
+
+     
+
+    <div class="common-footer-bottom">
+        <div class="copyright">
+            <p>© jiexiang, 2020<br>
+             <a target="_blank" rel="noopener noreferrer" href="https://gohugo.io/">Hugo</a>,  <a target="_blank" rel="noopener noreferrer" href="https://github.com/mitrichius/hugo-theme-anubis">Anubis</a>.
+            </p>  
+        </div> 
+
+        
+
+    
+
+
+   
+    </div>
+
+</footer>
+
+        
+    </div>
+</body>
+</html>
