@@ -154,7 +154,7 @@ make install
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;dbsize
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看数据库中所有的 key：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;keys *
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;**注意：**redis 数据量越大，keys 命令执行速度越慢。keys 还会阻塞单线程的 redis 服务器。生产环境中使用&lt;code&gt;scan&lt;/code&gt;来代替&lt;code&gt;keys&lt;/code&gt;。&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt; redis 数据量越大，keys 命令执行速度越慢。keys 还会阻塞单线程的 redis 服务器。生产环境中使用&lt;code&gt;scan&lt;/code&gt;来代替&lt;code&gt;keys&lt;/code&gt;。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# 默认返回 10 条 key&lt;/span&gt;
 scan &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;0&lt;/span&gt;
 
@@ -614,8 +614,8 @@ connected_slaves:0
 &lt;h3 id=&#34;复制原理&#34;&gt;复制原理&lt;/h3&gt;
 &lt;p&gt;Slave 连接 Master 成功后会主动发送一个 sync 同步命令。&lt;/p&gt;
 &lt;p&gt;master 接到命令，启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令。在后台进程执行完毕之后，master 将传送整个数据文件到 slave，完成一次完全同步。只要重新连接 master，一次全量复制将自动执行。&lt;/p&gt;
-&lt;p&gt;**全量复制：**slave 服务在接收到数据文件后，将其存盘并加载到内存中。&lt;/p&gt;
-&lt;p&gt;**增量复制：**master 继续将新的所有收集到的修改命令依次传给 slave，完成同步。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;全量复制：&lt;/strong&gt; slave 服务在接收到数据文件后，将其存盘并加载到内存中。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;增量复制：&lt;/strong&gt; master 继续将新的所有收集到的修改命令依次传给 slave，完成同步。&lt;/p&gt;
 &lt;h3 id=&#34;哨兵模式&#34;&gt;哨兵模式&lt;/h3&gt;
 &lt;p&gt;如果主机断开了连接，可以使用&lt;code&gt;slaveof no one&lt;/code&gt;让自己成为主机，其他节点需要手动连接到最新的节点，如果之前的主机恢复了，需要手动让其他从机再次连接到主机。&lt;/p&gt;
 &lt;p&gt;这样手动的方式费时费力，还会造成一段时间内服务不可用。可以使用哨兵（Sentinel）架构来解决这个问题。&lt;/p&gt;
@@ -623,15 +623,15 @@ connected_slaves:0
 &lt;p&gt;后台监控主机是否故障，如果故障了会根据投票数自动将从机转换为主机。&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;哨兵是一个独立的进程，独立运行。哨兵通过发送命令，等待 redis 服务器响应，从而监控多个 redis 实例。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://jiexiang.github.io/Users/jiexiang/Desktop/tfmnblog/content/post/redis.assets/redis-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;redis-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;哨兵作用：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;通过发送命令，让这三台 redis 服务器返回其监控运行状态。&lt;/li&gt;
 &lt;li&gt;当哨兵检测到 master 宕机，会自动将 slave 切换成 master，然后通过&lt;strong&gt;发布订阅模式&lt;/strong&gt;通知其他服务器，修改配置文件，让他们切换主机。&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;一个哨兵进程监控，可能也会出现问题。为此，可以使用多个哨兵进行监控，各个哨兵之间互相监控，形成多哨兵模式。&lt;/p&gt;
-&lt;p&gt;**主观下线：**假如主服务器宕机，哨兵A 先检测到这个情况，认为主服务器不可用，系统不会马上进行 failover 过程。&lt;/p&gt;
-&lt;p&gt;**客观下线：**当后面的哨兵也检测到主服务器不可用，并且数量达到一定值，哨兵之间会进行投票。切换主机后，通过发布订阅模式，让各个哨兵把自己监控的从服务器切换主机。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;主观下线：&lt;/strong&gt; 假如主服务器宕机，哨兵A 先检测到这个情况，认为主服务器不可用，系统不会马上进行 failover 过程。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;客观下线：&lt;/strong&gt; 当后面的哨兵也检测到主服务器不可用，并且数量达到一定值，哨兵之间会进行投票。切换主机后，通过发布订阅模式，让各个哨兵把自己监控的从服务器切换主机。&lt;/p&gt;
 &lt;h4 id=&#34;启用哨兵&#34;&gt;启用哨兵&lt;/h4&gt;
 &lt;ol&gt;
 &lt;li&gt;
