@@ -16,7 +16,7 @@
 <link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
 <link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1599465311" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1600845081" />
 <style>
 
     [data-theme="dark"] {   
@@ -48,7 +48,7 @@
 
 </style>
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1599465311" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1600845081" />
 
 
 
@@ -611,6 +611,27 @@ docker inspect &lt;容器id&gt;
 </code></pre></div><p>然后在容器内，发现vim、ifconfig 指令都能使用。</p>
 <p>查看镜像的历史：</p>
 <div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">docker <span style="color:#204a87">history</span> &lt;镜像id&gt;
+</code></pre></div><h2 id="docker-compose">Docker Compose</h2>
+<p>使用 Dockerfile 可以为把项目打包成容器，方便部署。但是现如今的项目，都不是一个单独的项目，依赖比较多。比如一个 Web 项目可能就会依赖 Redis，MySQL 等等其他容器，如果手动地去启动和操作单个容器，就会特别的麻烦。</p>
+<p>DockerCompose 就是来解决这些问题的，使用它可以轻松高效地定义、管理、运行多个容器。通过 Compose，可以使用 YML 配置所需的服务，然后一个命令就可以从 YML 文件中创建并启动所有服务。</p>
+<p>使用 Compose 的步骤：</p>
+<ol>
+<li>为项目编写 Dockerfile 文件</li>
+<li>新建 docker-compose.yml 文件，定义组成程序的服务</li>
+<li>执行<code>docker-compose up</code>命令启动运行整个程序。</li>
+</ol>
+<h3 id="安装-compose">安装 Compose</h3>
+<p><strong>下载</strong></p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.5/docker-compose-<span style="color:#4e9a06">`</span>uname -s<span style="color:#4e9a06">`</span>-<span style="color:#4e9a06">`</span>uname -m<span style="color:#4e9a06">`</span> &gt; /usr/local/bin/docker-compose
+</code></pre></div><p><strong>查看文件</strong></p>
+<p><img src="docker-02.png" alt="截屏2020-09-23 下午3.00.13"><strong>给文件授权</strong></p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo chmod +x docker-compose
+</code></pre></div><p><strong>查看 Compose 版本</strong></p>
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#ce5c00;font-weight:bold">[</span>root@VM-0-6-centos bin<span style="color:#ce5c00;font-weight:bold">]</span><span style="color:#8f5902;font-style:italic"># docker-compose version</span>
+docker-compose version 1.25.5, build 8a1c60f6
+docker-py version: 4.1.0
+CPython version: 3.7.5
+OpenSSL version: OpenSSL 1.1.0l  <span style="color:#0000cf;font-weight:bold">10</span> Sep <span style="color:#0000cf;font-weight:bold">2019</span>
 </code></pre></div>
         </div>
         

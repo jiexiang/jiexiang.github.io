@@ -1780,6 +1780,27 @@ docker inspect &amp;lt;容器id&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后在容器内，发现vim、ifconfig 指令都能使用。&lt;/p&gt;
 &lt;p&gt;查看镜像的历史：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;docker &lt;span style=&#34;color:#204a87&#34;&gt;history&lt;/span&gt; &amp;lt;镜像id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;docker-compose&#34;&gt;Docker Compose&lt;/h2&gt;
+&lt;p&gt;使用 Dockerfile 可以为把项目打包成容器，方便部署。但是现如今的项目，都不是一个单独的项目，依赖比较多。比如一个 Web 项目可能就会依赖 Redis，MySQL 等等其他容器，如果手动地去启动和操作单个容器，就会特别的麻烦。&lt;/p&gt;
+&lt;p&gt;DockerCompose 就是来解决这些问题的，使用它可以轻松高效地定义、管理、运行多个容器。通过 Compose，可以使用 YML 配置所需的服务，然后一个命令就可以从 YML 文件中创建并启动所有服务。&lt;/p&gt;
+&lt;p&gt;使用 Compose 的步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;为项目编写 Dockerfile 文件&lt;/li&gt;
+&lt;li&gt;新建 docker-compose.yml 文件，定义组成程序的服务&lt;/li&gt;
+&lt;li&gt;执行&lt;code&gt;docker-compose up&lt;/code&gt;命令启动运行整个程序。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;安装-compose&#34;&gt;安装 Compose&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;下载&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.5/docker-compose-&lt;span style=&#34;color:#4e9a06&#34;&gt;`&lt;/span&gt;uname -s&lt;span style=&#34;color:#4e9a06&#34;&gt;`&lt;/span&gt;-&lt;span style=&#34;color:#4e9a06&#34;&gt;`&lt;/span&gt;uname -m&lt;span style=&#34;color:#4e9a06&#34;&gt;`&lt;/span&gt; &amp;gt; /usr/local/bin/docker-compose
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;查看文件&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;docker-02.png&#34; alt=&#34;截屏2020-09-23 下午3.00.13&#34;&gt;&lt;strong&gt;给文件授权&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;sudo chmod +x docker-compose
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;查看 Compose 版本&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;[&lt;/span&gt;root@VM-0-6-centos bin&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# docker-compose version&lt;/span&gt;
+docker-compose version 1.25.5, build 8a1c60f6
+docker-py version: 4.1.0
+CPython version: 3.7.5
+OpenSSL version: OpenSSL 1.1.0l  &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;10&lt;/span&gt; Sep &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;2019&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
     </item>
     
