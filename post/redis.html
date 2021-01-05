@@ -16,7 +16,7 @@
 <link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
 <link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1600845081" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1609850361" />
 <style>
 
     [data-theme="dark"] {   
@@ -48,7 +48,7 @@
 
 </style>
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1600845081" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1609850361" />
 
 
 
@@ -162,26 +162,26 @@
 <table>
 <thead>
 <tr>
-<th align="center">Nosql</th>
-<th align="center">RDBMS</th>
+<th style="text-align:center">Nosql</th>
+<th style="text-align:center">RDBMS</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">没有固定的查询语言</td>
-<td align="center">SQL</td>
+<td style="text-align:center">没有固定的查询语言</td>
+<td style="text-align:center">SQL</td>
 </tr>
 <tr>
-<td align="center">键值对存储、列存储、文档存储</td>
-<td align="center">结构化组织</td>
+<td style="text-align:center">键值对存储、列存储、文档存储</td>
+<td style="text-align:center">结构化组织</td>
 </tr>
 <tr>
-<td align="center">可性能，高可用，高可扩</td>
-<td align="center">基础的事务</td>
+<td style="text-align:center">可性能，高可用，高可扩</td>
+<td style="text-align:center">基础的事务</td>
 </tr>
 <tr>
-<td align="center">不仅仅是数据</td>
-<td align="center">数据和关系都单独存在表中</td>
+<td style="text-align:center">不仅仅是数据</td>
+<td style="text-align:center">数据和关系都单独存在表中</td>
 </tr>
 </tbody>
 </table>
@@ -548,7 +548,7 @@ decrby money <span style="color:#0000cf;font-weight:bold">10</span>
 <span style="color:#204a87">exec</span>
 </code></pre></div><h2 id="redis-配置文件">redis 配置文件</h2>
 <h3 id="网络">网络</h3>
-<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 绑定的ip</span> 
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 绑定的ip </span>
 <span style="color:#204a87">bind</span> 127.0.0.1
 
 <span style="color:#8f5902;font-style:italic"># 保护模式</span>
@@ -576,11 +576,11 @@ databases
 always-show-logo yes
 </code></pre></div><h3 id="快照">快照</h3>
 <p>快照，也就是备份。就像单机游戏里面的存档，可以恢复到存档时的状态。</p>
-<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 如果 900s 内，如果至少有一个 1 key 进行了修改，redis 进行持久化操作</span> 
+<div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 如果 900s 内，如果至少有一个 1 key 进行了修改，redis 进行持久化操作 </span>
 save <span style="color:#0000cf;font-weight:bold">900</span> <span style="color:#0000cf;font-weight:bold">1</span>
-<span style="color:#8f5902;font-style:italic"># 如果 300s 内，如果至少 10 key 进行了修改，redis 进行持久化操作</span> 
+<span style="color:#8f5902;font-style:italic"># 如果 300s 内，如果至少 10 key 进行了修改，redis 进行持久化操作 </span>
 save <span style="color:#0000cf;font-weight:bold">300</span> <span style="color:#0000cf;font-weight:bold">10</span>
-<span style="color:#8f5902;font-style:italic"># 如果 60s 内，如果至少 10000 key 进行了修改，redis 进行持久化操作</span> 
+<span style="color:#8f5902;font-style:italic"># 如果 60s 内，如果至少 10000 key 进行了修改，redis 进行持久化操作 </span>
 save <span style="color:#0000cf;font-weight:bold">60</span> <span style="color:#0000cf;font-weight:bold">10000</span>
 
 <span style="color:#8f5902;font-style:italic"># 持久化如果出错，是否还需要继续工作</span>
@@ -779,7 +779,9 @@ connected_slaves:0
     
         
     <div class="pagination post-pagination">
-        <div class="left pagination-item disabled">
+        <div class="left pagination-item ">
+            
+                <a href="/post/2020.html">2020 年终总结</a>
             
         </div>
         <div class="right pagination-item ">
@@ -804,7 +806,7 @@ connected_slaves:0
 
     <div class="common-footer-bottom">
         <div class="copyright">
-            <p>© jiexiang, 2020<br>
+            <p>© jiexiang, 2021<br>
              <a target="_blank" rel="noopener noreferrer" href="https://gohugo.io/">Hugo</a>,  <a target="_blank" rel="noopener noreferrer" href="https://github.com/mitrichius/hugo-theme-anubis">Anubis</a>.
             </p>  
         </div> 

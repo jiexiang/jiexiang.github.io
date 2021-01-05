@@ -16,7 +16,7 @@
 <link rel="icon" type="image/x-icon" href="https://jiexiang.github.io/favicon.ico">
 <link rel="apple-touch-icon-precomposed" href="https://jiexiang.github.io/favicon.png">
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1600845081" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/light.css?rnd=1609850361" />
 <style>
 
     [data-theme="dark"] {   
@@ -48,7 +48,7 @@
 
 </style>
 
-<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1600845081" />
+<link rel="stylesheet" href="https://jiexiang.github.io/css/style.css?rnd=1609850361" />
 
 
 
@@ -277,7 +277,7 @@ docker rmi -f &lt;镜像id&gt;
 <div class="highlight"><pre style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#8f5902;font-style:italic"># 启动并进入容器</span>
 <span style="color:#ce5c00;font-weight:bold">[</span>root@VM-0-6-centos /<span style="color:#ce5c00;font-weight:bold">]</span><span style="color:#8f5902;font-style:italic"># docker run -it centos /bin/bash</span>
 <span style="color:#8f5902;font-style:italic"># 这一步就进入了容器</span>
-<span style="color:#ce5c00;font-weight:bold">[</span>root@401dc4e6319c /<span style="color:#ce5c00;font-weight:bold">]</span>#
+<span style="color:#ce5c00;font-weight:bold">[</span>root@401dc4e6319c /<span style="color:#ce5c00;font-weight:bold">]</span><span style="color:#8f5902;font-style:italic">#</span>
 
 <span style="color:#8f5902;font-style:italic"># 从容器中退回主机</span>
 <span style="color:#204a87">exit</span>
@@ -396,7 +396,7 @@ cp -r webapps.dist/** webapps
 docker commit -a<span style="color:#4e9a06">&#34;jiexiang&#34;</span> -m<span style="color:#4e9a06">&#34;add web apps&#34;</span> e335c2745f03 tomcat007:1.0
 <span style="color:#8f5902;font-style:italic"># 得到返回信息</span>
 sha256:3e246503a0b1da36c41b7c71f3a78da365fe3255a46d11fac95c8a11b5c8a6e8
-<span style="color:#8f5902;font-style:italic"># 查看自己打包的镜像</span> 
+<span style="color:#8f5902;font-style:italic"># 查看自己打包的镜像 </span>
 docker images
 <span style="color:#8f5902;font-style:italic"># 删除之前启动的那个容器，再启动自己打包好的镜像</span>
 docker run -d -p 8899:8080 tomcat007:1.0
@@ -487,58 +487,58 @@ DRIVER              VOLUME NAME
 <table>
 <thead>
 <tr>
-<th align="center">命令</th>
-<th align="left">意义</th>
+<th style="text-align:center">命令</th>
+<th style="text-align:left">意义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center">FROM</td>
-<td align="left">基础镜像，一切从这里开始构建</td>
+<td style="text-align:center">FROM</td>
+<td style="text-align:left">基础镜像，一切从这里开始构建</td>
 </tr>
 <tr>
-<td align="center">MAINTAINER</td>
-<td align="left">镜像是谁写的，姓名+邮箱</td>
+<td style="text-align:center">MAINTAINER</td>
+<td style="text-align:left">镜像是谁写的，姓名+邮箱</td>
 </tr>
 <tr>
-<td align="center">RUN</td>
-<td align="left">镜像构建的时候需要运行的命令</td>
+<td style="text-align:center">RUN</td>
+<td style="text-align:left">镜像构建的时候需要运行的命令</td>
 </tr>
 <tr>
-<td align="center">ADD</td>
-<td align="left">添加到镜像的内容</td>
+<td style="text-align:center">ADD</td>
+<td style="text-align:left">添加到镜像的内容</td>
 </tr>
 <tr>
-<td align="center">WORKDIR</td>
-<td align="left">镜像的工作目录</td>
+<td style="text-align:center">WORKDIR</td>
+<td style="text-align:left">镜像的工作目录</td>
 </tr>
 <tr>
-<td align="center">VOLUME</td>
-<td align="left">挂载卷</td>
+<td style="text-align:center">VOLUME</td>
+<td style="text-align:left">挂载卷</td>
 </tr>
 <tr>
-<td align="center">EXPOSE</td>
-<td align="left">暴露端口</td>
+<td style="text-align:center">EXPOSE</td>
+<td style="text-align:left">暴露端口</td>
 </tr>
 <tr>
-<td align="center">CMD</td>
-<td align="left">指定这个容器启动的时候运行的命令，只有最后一个会生效，可被替代</td>
+<td style="text-align:center">CMD</td>
+<td style="text-align:left">指定这个容器启动的时候运行的命令，只有最后一个会生效，可被替代</td>
 </tr>
 <tr>
-<td align="center">ENTRYPOINT</td>
-<td align="left">指定这个容器启动的时候运行的命令，可以追加命令</td>
+<td style="text-align:center">ENTRYPOINT</td>
+<td style="text-align:left">指定这个容器启动的时候运行的命令，可以追加命令</td>
 </tr>
 <tr>
-<td align="center">ONBUILD</td>
-<td align="left">当构建一个被继承 dockerfile 这个时候就会运行ONBUILD，触发指令</td>
+<td style="text-align:center">ONBUILD</td>
+<td style="text-align:left">当构建一个被继承 dockerfile 这个时候就会运行ONBUILD，触发指令</td>
 </tr>
 <tr>
-<td align="center">COPY</td>
-<td align="left">类似ADD，将文件拷贝到镜像中</td>
+<td style="text-align:center">COPY</td>
+<td style="text-align:left">类似ADD，将文件拷贝到镜像中</td>
 </tr>
 <tr>
-<td align="center">ENV</td>
-<td align="left">构建的时候设置环境变量</td>
+<td style="text-align:center">ENV</td>
+<td style="text-align:left">构建的时候设置环境变量</td>
 </tr>
 </tbody>
 </table>
@@ -679,7 +679,7 @@ OpenSSL version: OpenSSL 1.1.0l  <span style="color:#0000cf;font-weight:bold">10
 
     <div class="common-footer-bottom">
         <div class="copyright">
-            <p>© jiexiang, 2020<br>
+            <p>© jiexiang, 2021<br>
              <a target="_blank" rel="noopener noreferrer" href="https://gohugo.io/">Hugo</a>,  <a target="_blank" rel="noopener noreferrer" href="https://github.com/mitrichius/hugo-theme-anubis">Anubis</a>.
             </p>  
         </div> 

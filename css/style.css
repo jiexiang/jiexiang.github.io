@@ -10,7 +10,7 @@ html {
 
 body {
     margin: 0;
-    font-size: 17px;
+    font-size: 15.5px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     color: var(--font-color);
@@ -44,7 +44,7 @@ main {
 
 /* Headers */
 h1 {
-    font-size: 1.35em;
+    font-size: 1.2em;
 }
 
 h2 {
